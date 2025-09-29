@@ -1,5 +1,6 @@
 import customtkinter as ctk
-from backend.user import UserManager
+from backend.aluno import UserManager
+from backend.professor import ProfessorManager
 from frontend.paginas import LoginPage, CadastroPage, AlunoPage, ProfessorPage
 
 class App(ctk.CTk):

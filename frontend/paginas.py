@@ -3,6 +3,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 import webbrowser
 import os
+from tkinter import messagebox
 
 class LoginPage:
     def __init__(self, app, user_manager, professores_fixos):
