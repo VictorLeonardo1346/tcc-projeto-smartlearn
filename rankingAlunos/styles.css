@@ -1,0 +1,129 @@
+*{
+    list-style: none;
+    margin:0;
+    padding:0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+body{
+    background:#9ecae0;
+}
+
+.wrapper{
+    width:100%;
+    height:100%;
+}
+
+.lboard_section{
+    width:500px;
+    margin:100px auto 0;
+    background:#f94f62;
+    border-radius:5px;
+    padding:25px 40px;
+    position:relative;
+}
+
+.lboard_tabs ul{
+    display:flex;
+    padding-left:0;
+}
+
+.lboard_tabs ul li{
+    margin-right:50px;
+    font-size:18px;
+    font-weight:600;
+    color:#3a3d51;
+    cursor:pointer;
+}
+
+.lboard_tabs ul li.active,
+.lboard_tabs ul li:hover{
+    color:#fff;
+}
+
+.lboard_wrap{
+    margin-top:20px;
+    background:#ffd300;
+    border-radius:5px;
+    padding:25px;
+    position:relative;
+}
+
+.lboard_item{
+    display:none;
+}
+
+.lboard_item.active{
+    display:block;
+}
+
+.lboard_mem{
+    display:flex;
+    align-items:center;
+    padding:15px 0;
+    border-bottom:1px solid #ffe773;
+}
+
+.lboard_mem:last-child{
+    border-bottom:0;
+}
+
+.img{
+    width:50px;
+    height:50px;
+    flex-shrink:0;
+}
+
+.img img{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.name_bar{
+    margin:0 20px;
+    width:calc(100% - 150px);
+    color:#3a3d51;
+}
+
+.points{
+    width:100px;
+    color:#3a3d51;
+}
+
+.bar_wrap{
+    width:100%;
+    height:5px;
+    background:#d5b000;
+    border-radius:5px;
+    margin-top:5px;
+    position:relative;
+    overflow:hidden;
+}
+
+.inner_bar{
+    position:absolute;
+    top:0;
+    left:0;
+    height:5px;
+    background:#fff;
+    border-radius:5px;
+    border-top-right-radius:0;
+    border-bottom-right-radius:0;
+    width:0;
+}
+
+/* Medalhas */
+.medalha{
+    position:fixed;
+    width:50px;
+    height:50px;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    opacity:0;
+    transition: all 1.5s ease-in-out;
+    z-index:10;
+}
