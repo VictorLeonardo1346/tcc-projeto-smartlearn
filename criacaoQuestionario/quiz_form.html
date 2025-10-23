@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Criar Nova Atividade</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div>
+          <label for="materia">Matéria:</label>
+          <select id="materia">
+            <option value="">Selecione a matéria</option>
+            <option value="Português">Português</option>
+            <option value="Matemática">Matemática</option>
+            <option value="História">História</option>
+            <option value="Geografia">Geografia</option>
+            <option value="Física">Física</option>
+            <option value="Química">Química</option>
+            <option value="Biologia">Biologia</option>
+            <option value="Inglês">Inglês</option>
+            <option value="Artes">Artes</option>
+            <option value="Educação Física">Educação Física</option>
+            <option value="Sociologia">Sociologia</option>
+            <option value="Filosofia">Filosofia</option>
+          </select>
+        </div>
+        <h2>Criar nova atividade</h2>
+      </header>
+
+      <form id="quizForm">
+        <label for="titulo">Título</label>
+        <input
+          type="text"
+          id="titulo"
+          placeholder="Digite o título da atividade"
+        />
+
+        <div class="dificuldade">
+          <span>Dificuldade:</span>
+          <button type="button" class="facil" onclick="setDificuldade('Fácil')">
+            Fácil
+          </button>
+          <button type="button" class="medio" onclick="setDificuldade('Médio')">
+            Médio
+          </button>
+          <button
+            type="button"
+            class="dificil"
+            onclick="setDificuldade('Difícil')"
+          >
+            Difícil
+          </button>
+          <span id="nivelSelecionado" class="nivel"></span>
+        </div>
+
+        <div id="questionsContainer"></div>
+
+        <div class="actions-questions">
+          <button type="button" class="btn-add" onclick="addQuestion()">
+            ➕ Adicionar questão
+          </button>
+          <button type="button" class="btn-remove" onclick="removeQuestion()">
+            ➖ Remover questão
+          </button>
+        </div>
+
+        <label for="dataEntrega">Data de entrega da atividade</label>
+        <input type="date" id="dataEntrega" />
+
+        <div class="footer-buttons">
+          <button type="button" class="btn-delete">Deletar</button>
+          <button type="button" class="btn-save">Salvar</button>
+          <button type="submit" class="btn-create">Criar</button>
+        </div>
+      </form>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

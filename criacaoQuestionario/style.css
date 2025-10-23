@@ -1,0 +1,168 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #980909;
+  padding: 30px;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  background: #e5e5e5;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+header label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+select {
+  padding: 5px 10px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.materia {
+  background: #fff;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+h2 {
+  margin: 0;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="date"] {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+
+.question {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #bbb;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.dificuldade {
+  margin: 15px 0;
+}
+
+.dificuldade button {
+  border: none;
+  padding: 8px 15px;
+  border-radius: 15px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.dificuldade .facil {
+  background: #4caf50;
+  color: white;
+}
+.dificuldade .medio {
+  background: #ff9800;
+  color: white;
+}
+.dificuldade .dificil {
+  background: #f44336;
+  color: white;
+}
+
+.nivel {
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.options {
+  margin-top: 15px;
+}
+
+.options label {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.options input[type="text"] {
+  flex: 1;
+  margin-left: 8px;
+}
+
+.actions-questions {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.btn-add {
+  background: #4caf50;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 50px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.btn-remove {
+  background: #f44336;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+.footer-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-delete {
+  background: red;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+}
+
+.btn-save {
+  background: gray;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+}
+
+.btn-create {
+  background: green;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+}
