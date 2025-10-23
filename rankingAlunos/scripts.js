@@ -1,80 +1,65 @@
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function () {
+  const tabs = document.querySelectorAll('.lboard_tabs ul li');
+  const medalhas = {
+    ouro: document.querySelector('.medalha-ouro'),
+    prata: document.querySelector('.medalha-prata'),
+    bronze: document.querySelector('.medalha-bronze')
+  };
 
-    var tabs = document.querySelectorAll('.lboard_tabs ul li');
-    
-    function atualizarBarras(tabName){
-        var content = document.querySelector('.lboard_item.'+tabName);
-        if(!content) return;
+  function atualizarBarras(tabName) {
+    const content = document.querySelector(`.lboard_item.${tabName}`);
+    if (!content) return;
 
-        var barras = content.querySelectorAll('.inner_bar');
-        var pontos = content.querySelectorAll('.points');
+    const barras = content.querySelectorAll('.inner_bar');
+    const pontos = content.querySelectorAll('.points');
 
-        var max = 300;
-        if(tabName==='mensal') max=2000;
-        else if(tabName==='anual') max=4000;
+    let max = 300;
+    if (tabName === 'mensal') max = 2000;
+    else if (tabName === 'anual') max = 4000;
 
-        var len = Math.min(barras.length,pontos.length);
-        for(var i=0;i<len;i++){
-            var txt = pontos[i].innerText || pontos[i].textContent || '';
-            var valor = parseInt(txt.replace(/\D/g,''))||0;
-            var perc = Math.round((valor/max)*100);
-            if(perc>100) perc=100;
-            barras[i].style.width = perc+'%';
-        }
-    }
+    barras.forEach((bar, i) => {
+      const valor = parseInt((pontos[i].innerText || '').replace(/\D/g, '')) || 0;
+      let perc = Math.round((valor / max) * 100);
+      if (perc > 100) perc = 100;
+      bar.style.width = perc + '%';
+    });
+  }
 
-    function showTab(tabName){
-        var contentToday = document.querySelector('.lboard_item.hoje');
-        var contentMonth = document.querySelector('.lboard_item.mensal');
-        var contentYear = document.querySelector('.lboard_item.anual');
+  function showTab(tabName) {
+    document.querySelectorAll('.lboard_item').forEach(i => i.classList.remove('active'));
+    const ativo = document.querySelector(`.lboard_item.${tabName}`);
+    ativo.classList.add('active');
+    atualizarBarras(tabName);
+    mostrarMedalhas();
+  }
 
-        if(contentToday) contentToday.style.display = (tabName==='hoje')?'block':'none';
-        if(contentMonth) contentMonth.style.display = (tabName==='mensal')?'block':'none';
-        if(contentYear) contentYear.style.display = (tabName==='anual')?'block':'none';
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      showTab(tab.getAttribute('data-li'));
+    });
+  });
 
-        atualizarBarras(tabName);
-        mostrarMedalhas();
-    }
+  function mostrarMedalhas() {
+    const ativo = document.querySelector('.lboard_item.active');
+    if (!ativo) return;
 
-    for(var i=0;i<tabs.length;i++){
-        tabs[i].onclick = function(){
-            for(var j=0;j<tabs.length;j++){
-                tabs[j].classList.remove('active');
-            }
-            this.classList.add('active');
-            var current = this.getAttribute('data-li') || 'hoje';
-            showTab(current);
-        };
-    }
+    const alunos = ativo.querySelectorAll('.lboard_mem');
+    const posicoes = [0, 1, 2]; // 1º, 2º, 3º
+    const medalhasArray = [medalhas.ouro, medalhas.prata, medalhas.bronze];
 
-    var activeTab = document.querySelector('.lboard_tabs ul li.active');
-    var inicial = (activeTab && activeTab.getAttribute('data-li')) ? activeTab.getAttribute('data-li'):'hoje';
-    showTab(inicial);
+    medalhasArray.forEach((medalha, i) => {
+      medalha.classList.remove('show');
+      setTimeout(() => {
+        const nome = alunos[posicoes[i]].querySelector('.name');
+        const rect = nome.getBoundingClientRect();
+        medalha.style.top = rect.top + window.scrollY + 'px';
+        medalha.style.left = rect.right + 10 + 'px'; // à direita do nome
+        medalha.classList.add('show');
+      }, (i + 1) * 700); // delay entre cada medalha
+    });
+  }
 
-    // Medalhas
-    function mostrarMedalhas(){
-        var content = document.querySelector('.lboard_item.active');
-        if(!content) return;
-
-        var aluno1 = content.querySelector('.lboard_mem:nth-child(1) .img');
-        var aluno2 = content.querySelector('.lboard_mem:nth-child(2) .img');
-        var aluno3 = content.querySelector('.lboard_mem:nth-child(3) .img');
-
-        var medalhaOuro = document.querySelector('.medalha-ouro');
-        var medalhaPrata = document.querySelector('.medalha-prata');
-        var medalhaBronze = document.querySelector('.medalha-bronze');
-
-        medalhaOuro.style.opacity = 1;
-        medalhaOuro.style.top = aluno1.getBoundingClientRect().top + "px";
-        medalhaOuro.style.left = (aluno1.getBoundingClientRect().left - 60) + "px";
-
-        medalhaPrata.style.opacity = 1;
-        medalhaPrata.style.top = aluno2.getBoundingClientRect().top + "px";
-        medalhaPrata.style.left = (aluno2.getBoundingClientRect().left - 60) + "px";
-
-        medalhaBronze.style.opacity = 1;
-        medalhaBronze.style.top = aluno3.getBoundingClientRect().top + "px";
-        medalhaBronze.style.left = (aluno3.getBoundingClientRect().left - 60) + "px";
-    }
-
+  showTab('hoje');
 });

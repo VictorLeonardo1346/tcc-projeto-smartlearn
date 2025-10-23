@@ -1,163 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Ranking de Alunos</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranking de Alunos</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div class="wrapper">
-        <div class="lboard_section">
-            <!-- Abas -->
-            <div class="lboard_tabs">
-                <ul>
-                    <li data-li="hoje" class="active">Hoje</li>
-                    <li data-li="mensal">Mensal</li>
-                    <li data-li="anual">Anual</li>
-                </ul>
-            </div>
-
-            <div class="lboard_wrap">
-                <!-- Hoje -->
-                <div class="lboard_item hoje active">
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 1"></div>
-                        <div class="name_bar">
-                            <p>1.<span>Aluno 1</span></p>
-                            <div class="bar_wrap"><div class="inner_bar hoje_bar"></div></div>
-                            <div class="points hoje_score">195</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 2"></div>
-                        <div class="name_bar">
-                            <p>2.<span>Aluno 2</span></p>
-                            <div class="bar_wrap"><div class="inner_bar hoje_bar"></div></div>
-                            <div class="points hoje_score">180</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 3"></div>
-                        <div class="name_bar">
-                            <p>3.<span>Aluno 3</span></p>
-                            <div class="bar_wrap"><div class="inner_bar hoje_bar"></div></div>
-                            <div class="points hoje_score">165</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 4"></div>
-                        <div class="name_bar">
-                            <p>4.<span>Aluno 4</span></p>
-                            <div class="bar_wrap"><div class="inner_bar hoje_bar"></div></div>
-                            <div class="points hoje_score">155</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 5"></div>
-                        <div class="name_bar">
-                            <p>5.<span>Aluno 5</span></p>
-                            <div class="bar_wrap"><div class="inner_bar hoje_bar"></div></div>
-                            <div class="points hoje_score">150</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Mensal -->
-                <div class="lboard_item mensal">
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 1"></div>
-                        <div class="name_bar">
-                            <p>1.<span>Aluno 1</span></p>
-                            <div class="bar_wrap"><div class="inner_bar mensal_bar"></div></div>
-                            <div class="points mensal_score">1475</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 2"></div>
-                        <div class="name_bar">
-                            <p>2.<span>Aluno 2</span></p>
-                            <div class="bar_wrap"><div class="inner_bar mensal_bar"></div></div>
-                            <div class="points mensal_score">1450</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 3"></div>
-                        <div class="name_bar">
-                            <p>3.<span>Aluno 3</span></p>
-                            <div class="bar_wrap"><div class="inner_bar mensal_bar"></div></div>
-                            <div class="points mensal_score">1275</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 4"></div>
-                        <div class="name_bar">
-                            <p>4.<span>Aluno 4</span></p>
-                            <div class="bar_wrap"><div class="inner_bar mensal_bar"></div></div>
-                            <div class="points mensal_score">1100</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 5"></div>
-                        <div class="name_bar">
-                            <p>5.<span>Aluno 5</span></p>
-                            <div class="bar_wrap"><div class="inner_bar mensal_bar"></div></div>
-                            <div class="points mensal_score">960</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Anual -->
-                <div class="lboard_item anual">
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 1"></div>
-                        <div class="name_bar">
-                            <p>1.<span>Aluno 1</span></p>
-                            <div class="bar_wrap"><div class="inner_bar anual_bar"></div></div>
-                            <div class="points anual_score">3300</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 2"></div>
-                        <div class="name_bar">
-                            <p>2.<span>Aluno 2</span></p>
-                            <div class="bar_wrap"><div class="inner_bar anual_bar"></div></div>
-                            <div class="points anual_score">3100</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 3"></div>
-                        <div class="name_bar">
-                            <p>3.<span>Aluno 3</span></p>
-                            <div class="bar_wrap"><div class="inner_bar anual_bar"></div></div>
-                            <div class="points anual_score">3000</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 4"></div>
-                        <div class="name_bar">
-                            <p>4.<span>Aluno 4</span></p>
-                            <div class="bar_wrap"><div class="inner_bar anual_bar"></div></div>
-                            <div class="points anual_score">2850</div>
-                        </div>
-                    </div>
-                    <div class="lboard_mem">
-                        <div class="img"><img src="img/usuario.png" alt="Aluno 5"></div>
-                        <div class="name_bar">
-                            <p>5.<span>Aluno 5</span></p>
-                            <div class="bar_wrap"><div class="inner_bar anual_bar"></div></div>
-                            <div class="points anual_score">2700</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="lboard">
+    <div class="lboard_tabs">
+      <ul>
+        <li data-li="hoje" class="active">Hoje</li>
+        <li data-li="mensal">Mensal</li>
+        <li data-li="anual">Anual</li>
+      </ul>
     </div>
 
-    <!-- Medalhas -->
-    <img src="img/medalha_ouro.gif" class="medalha medalha-ouro">
-    <img src="img/medalha_prata.gif" class="medalha medalha-prata">
-    <img src="img/medalha_bronze.gif" class="medalha medalha-bronze">
+    <div class="lboard_wrap">
+      <!-- ABA HOJE -->
+      <div class="lboard_item hoje active">
+        <div class="lboard_mem">
+          <div class="name">1. Ana Clara</div>
+          <div class="points">280 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+        <div class="lboard_mem">
+          <div class="name">2. João Pedro</div>
+          <div class="points">250 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+        <div class="lboard_mem">
+          <div class="name">3. Beatriz</div>
+          <div class="points">230 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+      </div>
 
-    <script src="scripts.js"></script>
+      <!-- ABA MENSAL -->
+      <div class="lboard_item mensal">
+        <div class="lboard_mem">
+          <div class="name">1. Lucas</div>
+          <div class="points">1800 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+        <div class="lboard_mem">
+          <div class="name">2. Fernanda</div>
+          <div class="points">1500 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+        <div class="lboard_mem">
+          <div class="name">3. Tiago</div>
+          <div class="points">1000 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+      </div>
+
+      <!-- ABA ANUAL -->
+      <div class="lboard_item anual">
+        <div class="lboard_mem">
+          <div class="name">1. Marina</div>
+          <div class="points">3800 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+        <div class="lboard_mem">
+          <div class="name">2. Carlos</div>
+          <div class="points">3600 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+        <div class="lboard_mem">
+          <div class="name">3. Julia</div>
+          <div class="points">3400 pts</div>
+          <div class="bar"><div class="inner_bar"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medalhas animadas -->
+  <img src="img/medalha-ouro.gif" class="medalha medalha-ouro" alt="Medalha de Ouro" />
+  <img src="img/medalha-prata.gif" class="medalha medalha-prata" alt="Medalha de Prata" />
+  <img src="img/medalha-bronze.gif" class="medalha medalha-bronze" alt="Medalha de Bronze" />
+
+  <script src="scripts.js"></script>
 </body>
 </html>
