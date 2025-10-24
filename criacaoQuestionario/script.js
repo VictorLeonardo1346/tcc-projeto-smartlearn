@@ -85,6 +85,22 @@ function removeQuestion() {
   }
 }
 
+// Remover formulario
+function deletarAtividade() {
+  // Confirmação antes de apagar tudo
+  if (confirm("Tem certeza que deseja deletar esta atividade?")) {
+    document.getElementById("titulo").value = "";
+    document.getElementById("materia").value = "";
+    document.getElementById("dataEntrega").value = "";
+    document.getElementById("nivelSelecionado").innerText = "";
+    dificuldadeSelecionada = null;
+
+    const container = document.getElementById("questionsContainer");
+    container.innerHTML = ""; // remove todas as questões
+    questionCount = 0;
+  }
+}
+
 // Captura envio do formulário
 document.getElementById("quizForm").addEventListener("submit", function (e) {
   e.preventDefault();
