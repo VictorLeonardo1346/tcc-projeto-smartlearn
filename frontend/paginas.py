@@ -4,6 +4,8 @@ from PIL import Image, ImageTk
 import webbrowser
 import os
 from tkinter import messagebox
+import sqlite3
+
 
 class LoginPage:
     def __init__(self, app, user_manager, professores_fixos):
@@ -131,15 +133,53 @@ class AlunoPage:
         for widget in self.app.winfo_children():
             widget.destroy()
 
+        # Barra inferior
         ctk.CTkFrame(self.app, height=30, fg_color="#660000").pack(side=BOTTOM, fill=X)
 
-        ctk.CTkLabel(self.app, text=f"Bem-vindo(a) Aluno, {self.app.username_login}!", font=("Century Gothic", 24), text_color="white").place(relx=0.5, rely=0.3, anchor=CENTER)
-        ctk.CTkButton(self.app, text="IR PARA QUESTIONÁRIO", font=("Century Gothic", 16), command=self.abrir_questionario).place(relx=0.5, rely=0.45, anchor=CENTER)
-        ctk.CTkButton(self.app, text="SAIR DO SISTEMA", font=("Century Gothic", 16), fg_color="red", hover_color="#800", command=self.app.mostrar_login).place(relx=0.5, rely=0.55, anchor=CENTER)
+        # Saudação
+        ctk.CTkLabel(
+            self.app,
+            text=f"Bem-vindo(a) Aluno, {self.app.username_login}!",
+            font=("Century Gothic", 24),
+            text_color="white"
+        ).place(relx=0.5, rely=0.3, anchor=CENTER)
+
+        # Botões
+        ctk.CTkButton(
+            self.app,
+            text="ACESSAR FORMULÁRIOS",
+            font=("Century Gothic", 16),
+            fg_color="#007ACC",
+            hover_color="#005F99",
+            command=self.abrir_questionario
+        ).place(relx=0.5, rely=0.5, anchor=CENTER)
+
+        ctk.CTkButton(
+            self.app,
+            text="SAIR DO SISTEMA",
+            font=("Century Gothic", 16),
+            fg_color="red",
+            hover_color="#800",
+            command=self.app.mostrar_login
+        ).place(relx=0.5, rely=0.58, anchor=CENTER)
 
     def abrir_questionario(self):
-        caminho_html = os.path.abspath("questionario/index.html")
-        webbrowser.open_new_tab(f"file:///{caminho_html}")
+        """Abre o questionário mais recente salvo no banco, se existir"""
+        try:
+            conn = sqlite3.connect("banco.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM questionarios ORDER BY id DESC LIMIT 1")
+            dado = cursor.fetchone()
+            conn.close()
+
+            if dado:
+                id_questionario = dado[0]
+                url = f"http://127.0.0.1:5000/questionario/{id_questionario}"
+                webbrowser.open_new_tab(url)
+            else:
+                messagebox.showinfo("Aviso", "Nenhum questionário encontrado no banco.")
+        except Exception as e:
+            messagebox.showerror("Erro", f"Não foi possível abrir o questionário.\n{e}")
 
 
 class ProfessorPage:
@@ -150,8 +190,44 @@ class ProfessorPage:
         for widget in self.app.winfo_children():
             widget.destroy()
 
+        # Barra inferior
         ctk.CTkFrame(self.app, height=30, fg_color="#660000").pack(side=BOTTOM, fill=X)
 
-        ctk.CTkLabel(self.app, text=f"Bem-vindo(a) Professor, {self.app.username_login}!", font=("Century Gothic", 24), text_color="white").place(relx=0.5, rely=0.3, anchor=CENTER)
-        ctk.CTkButton(self.app, text="GERENCIAR QUESTIONÁRIOS", font=("Century Gothic", 16)).place(relx=0.5, rely=0.45, anchor=CENTER)
-        ctk.CTkButton(self.app, text="SAIR DO SISTEMA", font=("Century Gothic", 16), fg_color="red", hover_color="#800", command=self.app.mostrar_login).place(relx=0.5, rely=0.55, anchor=CENTER)
+        # Saudação
+        ctk.CTkLabel(
+            self.app,
+            text=f"Bem-vindo(a) Professor, {self.app.username_login}!",
+            font=("Century Gothic", 24),
+            text_color="white"
+        ).place(relx=0.5, rely=0.3, anchor=CENTER)
+
+        # Botão criar questionário
+        ctk.CTkButton(
+            self.app,
+            text="CRIAR QUESTIONÁRIO",
+            font=("Century Gothic", 16),
+            fg_color="#007ACC",
+            hover_color="#005F99",
+            command=self.abrir_criacao_questionario
+        ).place(relx=0.5, rely=0.45, anchor=CENTER)
+
+        # Botão gerenciar questionários (opcional)
+        ctk.CTkButton(
+            self.app,
+            text="GERENCIAR QUESTIONÁRIOS",
+            font=("Century Gothic", 16)
+        ).place(relx=0.5, rely=0.52, anchor=CENTER)
+
+        # Botão sair
+        ctk.CTkButton(
+            self.app,
+            text="SAIR DO SISTEMA",
+            font=("Century Gothic", 16),
+            fg_color="red",
+            hover_color="#800",
+            command=self.app.mostrar_login
+        ).place(relx=0.5, rely=0.59, anchor=CENTER)
+
+    def abrir_criacao_questionario(self):
+        caminho_html = os.path.abspath("criacaoQuestionario/quiz_form.html")
+        webbrowser.open_new_tab(f"file:///{caminho_html}")

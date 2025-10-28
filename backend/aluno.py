@@ -1,5 +1,5 @@
 from tkinter import messagebox
-from bancodedados import Database  
+from .bancodedados import Database  
 
 class UserManager:
     def __init__(self):
@@ -19,19 +19,25 @@ class UserManager:
             messagebox.showwarning("Aviso", "As senhas não coincidem")
             return False
 
-        conn, cursor = self.db.connect()
+        # Usa a conexão e cursor já criados no Database
+        conn = self.db.conn
+        cursor = self.db.cursor
+
         cursor.execute(
             "INSERT INTO Usuarios (Username, Email, Senha, Confirma_Senha) VALUES (?, ?, ?, ?)",
             (username, email, senha, confirma_senha)
         )
         conn.commit()
-        self.db.close()
-        messagebox.showinfo("Sucesso", f"Cadastro de {username} realizado!")
+
+        messagebox.showinfo("Sucesso", f"Cadastro de {username} realizado com sucesso!")
         return True
 
     def login(self, username, senha):
-        conn, cursor = self.db.connect()
-        cursor.execute("SELECT * FROM Usuarios WHERE Username=? AND Senha=?", (username, senha))
-        result = cursor.fetchone()
-        self.db.close()
-        return result is not None
+        # Usa o método do Database diretamente
+        user = self.db.verifica_login(username, senha)
+        if user:
+            messagebox.showinfo("Login", f"Bem-vindo(a), {username}!")
+            return True
+        else:
+            messagebox.showerror("Erro", "Usuário ou senha incorretos.")
+            return False
