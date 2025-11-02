@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Responder Questionário</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f2f2f2;
+        }
+        h1 {
+            text-align: center;
+        }
+        .question {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .options label {
+            display: block;
+            margin: 5px 0;
+        }
+        #submitBtn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 30px;
+            font-size: 16px;
+            background-color: #007ACC;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #submitBtn:hover {
+            background-color: #005F99;
+        }
+    </style>
+</head>
+<body>
+    <h1>Responder Questionário</h1>
+    <div id="questionsContainer"></div>
+    <button id="submitBtn" onclick="enviarRespostas()">Enviar Respostas</button>
+
+    <script>
+        // Recebe o id do questionário do Flask
+        const questionarioId = "{{ id }}"; // sempre entre aspas para evitar erros no VS Code
+        const respostas = {};
+
+        async function carregarQuestoes() {
+            try {
+                const resp = await fetch(`/api/questoes/${questionarioId}`);
+                const questoes = await resp.json();
+                const container = document.getElementById('questionsContainer');
+                container.innerHTML = '';
+
+                questoes.forEach((q, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'question';
+
+                    const enunciado = document.createElement('p');
+                    enunciado.textContent = `${i + 1}. ${q.enunciado}`;
+                    div.appendChild(enunciado);
+
+                    const optionsDiv = document.createElement('div');
+                    optionsDiv.className = 'options';
+
+                    q.alternativas.forEach((alt, idx) => {
+                        const letra = ['a','b','c','d'][idx];
+                        const label = document.createElement('label');
+
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = `questao-${q.id}`;
+                        radio.value = letra;
+                        radio.addEventListener('change', () => {
+                            respostas[q.id] = letra;
+                        });
+
+                        label.appendChild(radio);
+                        label.append(` ${letra.toUpperCase()}) ${alt}`);
+                        optionsDiv.appendChild(label);
+                    });
+
+                    div.appendChild(optionsDiv);
+                    container.appendChild(div);
+                });
+
+            } catch (err) {
+                alert('Erro ao carregar questões!');
+                console.error(err);
+            }
+        }
+
+        function enviarRespostas() {
+            console.log('Respostas do aluno:', respostas);
+            alert('Respostas enviadas! (No momento apenas logadas no console)');
+            // Aqui depois você pode enviar via fetch para salvar no backend
+        }
+
+        carregarQuestoes();
+    </script>
+</body>
+</html>

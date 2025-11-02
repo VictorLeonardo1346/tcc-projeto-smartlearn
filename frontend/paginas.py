@@ -6,7 +6,11 @@ import os
 from tkinter import messagebox
 import sqlite3
 
+BASE_URL = "http://127.0.0.1:5001"  # URL do Flask
 
+# ----------------------------
+# Página de Login
+# ----------------------------
 class LoginPage:
     def __init__(self, app, user_manager, professores_fixos):
         self.app = app
@@ -75,7 +79,9 @@ class LoginPage:
             else:
                 messagebox.showerror("Erro", "Usuário ou senha de professor incorretos")
 
-
+# ----------------------------
+# Página de Cadastro
+# ----------------------------
 class CadastroPage:
     def __init__(self, app, user_manager):
         self.app = app
@@ -124,7 +130,9 @@ class CadastroPage:
             self.senha_entry.delete(0, END)
             self.confirma_entry.delete(0, END)
 
-
+# ----------------------------
+# Página do Aluno
+# ----------------------------
 class AlunoPage:
     def __init__(self, app):
         self.app = app
@@ -174,14 +182,16 @@ class AlunoPage:
 
             if dado:
                 id_questionario = dado[0]
-                url = f"http://127.0.0.1:5000/questionario/{id_questionario}"
+                url = f"{BASE_URL}/aluno/responder/{id_questionario}"
                 webbrowser.open_new_tab(url)
             else:
                 messagebox.showinfo("Aviso", "Nenhum questionário encontrado no banco.")
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir o questionário.\n{e}")
 
-
+# ----------------------------
+# Página do Professor
+# ----------------------------
 class ProfessorPage:
     def __init__(self, app):
         self.app = app

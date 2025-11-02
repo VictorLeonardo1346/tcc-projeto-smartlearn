@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from backend.bancodedados import Database
 
@@ -6,10 +6,10 @@ app = Flask(__name__)
 CORS(app)
 
 # Inicializa o banco
-db = Database(db_name="banco.db")  # Pode ser "banco.db" ou "Sistema_cadastros.db"
+db = Database(db_name="banco.db")
 
 # ----------------------------
-# Rota para salvar questionário
+# Rota para salvar questionário (PROFESSOR)
 # ----------------------------
 @app.route("/salvar_questionario", methods=["POST"])
 def salvar_questionario():
@@ -19,18 +19,22 @@ def salvar_questionario():
     titulo = dados.get("titulo", "")
     dificuldade = dados.get("dificuldade", "")
     data_entrega = dados.get("dataEntrega", "")
-    questoes = dados.get("questoes", [])  # Lista de questões: {pergunta, alternativas, correta}
+    questoes = dados.get("questoes", [])
 
     try:
-        # Cria questionário
         questionario_id = db.criar_questionario(materia, titulo, dificuldade, data_entrega)
 
-        # Adiciona questões
         for q in questoes:
-            enunciado = q.get("pergunta", "")
-            alternativas = q.get("alternativas", [])
+            enunciado = q.get("enunciado", "")
+            alternativas = q.get("alternativas", {})
             correta = q.get("correta", "")
-            db.adicionar_questao(questionario_id, enunciado, alternativas, correta)
+
+            db.adicionar_questao(
+                questionario_id,
+                enunciado,
+                [alternativas.get("a"), alternativas.get("b"), alternativas.get("c"), alternativas.get("d")],
+                correta
+            )
 
         return jsonify({
             "status": "sucesso",
@@ -41,11 +45,12 @@ def salvar_questionario():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+
 # ----------------------------
-# Rota para listar questionários
+# LISTAR QUESTIONÁRIOS (ALUNO)
 # ----------------------------
-@app.route("/listar_questionarios", methods=["GET"])
-def listar_questionarios():
+@app.route("/api/questionarios", methods=["GET"])
+def api_questionarios():
     try:
         rows = db.listar_questionarios()
         lista = []
@@ -61,10 +66,11 @@ def listar_questionarios():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+
 # ----------------------------
-# Rota para buscar questões
+# BUSCAR QUESTÕES DE UM QUESTIONÁRIO (ALUNO)
 # ----------------------------
-@app.route("/buscar_questoes/<int:questionario_id>", methods=["GET"])
+@app.route("/api/questoes/<int:questionario_id>", methods=["GET"])
 def buscar_questoes(questionario_id):
     try:
         rows = db.buscar_questoes(questionario_id)
@@ -80,13 +86,25 @@ def buscar_questoes(questionario_id):
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
+
 # ----------------------------
-# Rota inicial (opcional)
+# PÁGINAS FRONTEND DO ALUNO
+# ----------------------------
+@app.route("/aluno")
+def aluno_home():
+    return render_template("aluno_listar.html")
+
+
+@app.route("/aluno/responder/<int:questionario_id>")
+def aluno_responder(questionario_id):
+    return render_template("aluno_responder.html", id=questionario_id)
+
+
 # ----------------------------
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({"mensagem": "API do SmartLearn rodando!"})
 
-# ----------------------------
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
