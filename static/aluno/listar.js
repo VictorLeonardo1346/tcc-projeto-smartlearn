@@ -3,32 +3,33 @@ async function carregarQuestionarios() {
     const resp = await fetch("http://127.0.0.1:5001/api/questionarios");
     const questionarios = await resp.json();
 
-    const tbody = document.querySelector("#tabelaQuestionarios tbody");
-    tbody.innerHTML = "";
+    const container = document.getElementById("cardsQuestionarios");
+    container.innerHTML = "";
 
     questionarios.forEach(q => {
-      const tr = document.createElement("tr");
+      const card = document.createElement("div");
+      card.classList.add("questionario-card");
 
-      tr.innerHTML = `
-        <td>${q.id}</td>
-        <td>${q.materia}</td>
-        <td>${q.titulo}</td>
-        <td>${q.dificuldade}</td>
-        <td>${q.dataEntrega}</td>
-        <td><button class="btn btn-primary" onclick="responder(${q.id})">Responder</button></td>
+      card.innerHTML = `
+        <h5>${q.titulo}</h5>
+        <p><strong>Matéria:</strong> ${q.materia}</p>
+        <p><strong>Dificuldade:</strong> ${q.dificuldade}</p>
+        <p><strong>Entrega:</strong> ${q.dataEntrega}</p>
+        <button class="btn btn-primary btn-responder">Responder</button>
       `;
 
-      tbody.appendChild(tr);
+      // Redireciona ao clicar no card ou no botão
+      card.querySelector(".btn-responder").addEventListener("click", () => {
+        window.location.href = `http://127.0.0.1:5001/aluno/responder/${q.id}`;
+      });
+
+      container.appendChild(card);
     });
 
   } catch (err) {
     alert("Erro ao carregar questionários!");
     console.error(err);
   }
-}
-
-function responder(id) {
-  window.location.href = `http://127.0.0.1:5001/aluno/responder/${id}`;
 }
 
 carregarQuestionarios();

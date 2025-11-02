@@ -159,7 +159,7 @@ class AlunoPage:
             font=("Century Gothic", 16),
             fg_color="#007ACC",
             hover_color="#005F99",
-            command=self.abrir_questionario
+            command=self.abrir_lista_questionarios  # Alterado para abrir a listagem
         ).place(relx=0.5, rely=0.5, anchor=CENTER)
 
         ctk.CTkButton(
@@ -171,23 +171,13 @@ class AlunoPage:
             command=self.app.mostrar_login
         ).place(relx=0.5, rely=0.58, anchor=CENTER)
 
-    def abrir_questionario(self):
-        """Abre o questionário mais recente salvo no banco, se existir"""
+    def abrir_lista_questionarios(self):
+        """Abre a página de listagem de questionários para o aluno escolher qual responder"""
         try:
-            conn = sqlite3.connect("banco.db")
-            cursor = conn.cursor()
-            cursor.execute("SELECT id FROM questionarios ORDER BY id DESC LIMIT 1")
-            dado = cursor.fetchone()
-            conn.close()
-
-            if dado:
-                id_questionario = dado[0]
-                url = f"{BASE_URL}/aluno/responder/{id_questionario}"
-                webbrowser.open_new_tab(url)
-            else:
-                messagebox.showinfo("Aviso", "Nenhum questionário encontrado no banco.")
+            url = f"{BASE_URL}/aluno"
+            webbrowser.open_new_tab(url)
         except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível abrir o questionário.\n{e}")
+            messagebox.showerror("Erro", f"Não foi possível abrir a página de questionários.\n{e}")
 
 # ----------------------------
 # Página do Professor

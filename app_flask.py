@@ -14,7 +14,6 @@ db = Database(db_name="banco.db")
 @app.route("/salvar_questionario", methods=["POST"])
 def salvar_questionario():
     dados = request.get_json()
-
     materia = dados.get("materia", "")
     titulo = dados.get("titulo", "")
     dificuldade = dados.get("dificuldade", "")
@@ -23,7 +22,6 @@ def salvar_questionario():
 
     try:
         questionario_id = db.criar_questionario(materia, titulo, dificuldade, data_entrega)
-
         for q in questoes:
             enunciado = q.get("enunciado", "")
             alternativas = q.get("alternativas", {})
@@ -36,15 +34,9 @@ def salvar_questionario():
                 correta
             )
 
-        return jsonify({
-            "status": "sucesso",
-            "mensagem": "Questionário salvo com sucesso!",
-            "id": questionario_id
-        })
-
+        return jsonify({"status": "sucesso", "mensagem": "Questionário salvo com sucesso!", "id": questionario_id})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
 
 # ----------------------------
 # LISTAR QUESTIONÁRIOS (ALUNO)
@@ -66,7 +58,6 @@ def api_questionarios():
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 # ----------------------------
 # BUSCAR QUESTÕES DE UM QUESTIONÁRIO (ALUNO)
 # ----------------------------
@@ -86,25 +77,26 @@ def buscar_questoes(questionario_id):
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
-
 # ----------------------------
-# PÁGINAS FRONTEND DO ALUNO
+# ROTA PARA LISTAGEM DE QUESTIONÁRIOS (ALUNO ESCOLHER QUAL RESPONDER)
 # ----------------------------
 @app.route("/aluno")
 def aluno_home():
+    # Renderiza a tela de listagem de questionários
     return render_template("aluno_listar.html")
 
-
+# ----------------------------
+# ROTA PARA RESPOSTA DE QUESTIONÁRIO
+# ----------------------------
 @app.route("/aluno/responder/<int:questionario_id>")
 def aluno_responder(questionario_id):
+    # Redireciona para a tela de respostas do questionário selecionado
     return render_template("aluno_responder.html", id=questionario_id)
-
 
 # ----------------------------
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({"mensagem": "API do SmartLearn rodando!"})
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
