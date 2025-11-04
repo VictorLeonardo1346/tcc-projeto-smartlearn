@@ -1,3 +1,4 @@
+# frontend/paginas.py
 import customtkinter as ctk
 from tkinter import *
 from PIL import Image, ImageTk
@@ -8,9 +9,6 @@ import sqlite3
 
 BASE_URL = "http://127.0.0.1:5001"  # URL do Flask
 
-# ----------------------------
-# Página de Login
-# ----------------------------
 class LoginPage:
     def __init__(self, app, user_manager, professores_fixos):
         self.app = app
@@ -67,21 +65,27 @@ class LoginPage:
             return
 
         if perfil == "Aluno":
-            if self.user_manager.login(username, senha):
+            user_id = self.user_manager.login(username, senha)
+            if user_id:
+                # guarda nome e id no app para uso futuro
                 self.app.username_login = username
+                self.app.user_id = user_id
+                # Abre a listagem de questionários passando user_id na query string
+                url = f"{BASE_URL}/aluno?user_id={user_id}"
+                webbrowser.open_new_tab(url)
                 self.app.mostrar_aluno()
             else:
-                messagebox.showerror("Erro", "Usuário ou senha incorretos")
+                # mensagem já exibida no UserManager.login
+                pass
         elif perfil == "Professor":
             if username in self.professores_fixos and self.professores_fixos[username]["senha"] == senha:
                 self.app.username_login = self.professores_fixos[username]["nome"]
+                # professor abre sua tela local (Tk)
                 self.app.mostrar_professor()
             else:
                 messagebox.showerror("Erro", "Usuário ou senha de professor incorretos")
 
-# ----------------------------
-# Página de Cadastro
-# ----------------------------
+
 class CadastroPage:
     def __init__(self, app, user_manager):
         self.app = app
@@ -130,9 +134,7 @@ class CadastroPage:
             self.senha_entry.delete(0, END)
             self.confirma_entry.delete(0, END)
 
-# ----------------------------
-# Página do Aluno
-# ----------------------------
+
 class AlunoPage:
     def __init__(self, app):
         self.app = app
@@ -147,7 +149,7 @@ class AlunoPage:
         # Saudação
         ctk.CTkLabel(
             self.app,
-            text=f"Bem-vindo(a) Aluno, {self.app.username_login}!",
+            text=f"Bem-vindo(a) Aluno, {getattr(self.app, 'username_login','')}!",
             font=("Century Gothic", 24),
             text_color="white"
         ).place(relx=0.5, rely=0.3, anchor=CENTER)
@@ -159,7 +161,7 @@ class AlunoPage:
             font=("Century Gothic", 16),
             fg_color="#007ACC",
             hover_color="#005F99",
-            command=self.abrir_lista_questionarios  # Alterado para abrir a listagem
+            command=self.abrir_lista_questionarios  # abre a listagem no navegador
         ).place(relx=0.5, rely=0.5, anchor=CENTER)
 
         ctk.CTkButton(
@@ -172,16 +174,19 @@ class AlunoPage:
         ).place(relx=0.5, rely=0.58, anchor=CENTER)
 
     def abrir_lista_questionarios(self):
-        """Abre a página de listagem de questionários para o aluno escolher qual responder"""
+        """Abre a página de listagem de questionários para o aluno escolher qual responder.
+           Usa o user_id que ficou armazenado no app (caso exista) e passa via query-string."""
         try:
-            url = f"{BASE_URL}/aluno"
+            user_id = getattr(self.app, "user_id", None)
+            if user_id:
+                url = f"{BASE_URL}/aluno?user_id={user_id}"
+            else:
+                url = f"{BASE_URL}/aluno"
             webbrowser.open_new_tab(url)
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir a página de questionários.\n{e}")
 
-# ----------------------------
-# Página do Professor
-# ----------------------------
+
 class ProfessorPage:
     def __init__(self, app):
         self.app = app
@@ -196,7 +201,7 @@ class ProfessorPage:
         # Saudação
         ctk.CTkLabel(
             self.app,
-            text=f"Bem-vindo(a) Professor, {self.app.username_login}!",
+            text=f"Bem-vindo(a) Professor, {getattr(self.app,'username_login','')}!",
             font=("Century Gothic", 24),
             text_color="white"
         ).place(relx=0.5, rely=0.3, anchor=CENTER)

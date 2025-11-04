@@ -1,15 +1,18 @@
+# app_flask.py
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from backend.bancodedados import Database
+from backend.respostas_db import RespostasDB
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
 
-# Inicializa o banco
-db = Database(db_name="banco.db")
+# Bancos
+db = Database(db_name="banco.db")  # questionarios e questoes
+res_db = RespostasDB(db_name="respostas_enviadas_aluno.db")  # respostas dos alunos
 
 # ----------------------------
-# Rota para salvar questionário (PROFESSOR)
+# SALVAR QUESTIONÁRIO (PROFESSOR)
 # ----------------------------
 @app.route("/salvar_questionario", methods=["POST"])
 def salvar_questionario():
@@ -26,20 +29,18 @@ def salvar_questionario():
             enunciado = q.get("enunciado", "")
             alternativas = q.get("alternativas", {})
             correta = q.get("correta", "")
-
             db.adicionar_questao(
                 questionario_id,
                 enunciado,
                 [alternativas.get("a"), alternativas.get("b"), alternativas.get("c"), alternativas.get("d")],
                 correta
             )
-
         return jsonify({"status": "sucesso", "mensagem": "Questionário salvo com sucesso!", "id": questionario_id})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # ----------------------------
-# LISTAR QUESTIONÁRIOS (ALUNO)
+# LISTAR QUESTIONÁRIOS (API)
 # ----------------------------
 @app.route("/api/questionarios", methods=["GET"])
 def api_questionarios():
@@ -59,7 +60,7 @@ def api_questionarios():
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # ----------------------------
-# BUSCAR QUESTÕES DE UM QUESTIONÁRIO (ALUNO)
+# BUSCAR QUESTÕES (API)
 # ----------------------------
 @app.route("/api/questoes/<int:questionario_id>", methods=["GET"])
 def buscar_questoes(questionario_id):
@@ -78,22 +79,98 @@ def buscar_questoes(questionario_id):
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # ----------------------------
-# ROTA PARA LISTAGEM DE QUESTIONÁRIOS (ALUNO ESCOLHER QUAL RESPONDER)
+# SALVAR RESPOSTAS DO ALUNO (API)
+# ----------------------------
+@app.route("/api/salvar_respostas", methods=["POST"])
+def salvar_respostas():
+    dados = request.get_json()
+    aluno_id = dados.get("aluno_id")
+    questionario_id = dados.get("questionario_id")
+    respostas = dados.get("respostas", [])
+
+    if not aluno_id or not questionario_id:
+        return jsonify({"status": "erro", "mensagem": "aluno_id e questionario_id são obrigatórios"}), 400
+
+    try:
+        gabarito_rows = db.buscar_questoes(questionario_id)
+        gabarito = {r[0]: r[6] for r in gabarito_rows}
+
+        total_questoes = len(gabarito)
+        pontos_por_questao = 100 / total_questoes if total_questoes > 0 else 0
+
+        respostas_para_salvar = []
+        total_pontos = 0
+        acertos = 0
+        erros = 0
+
+        for r in respostas:
+            qid = r.get("questao_id")
+            resp = r.get("resposta")
+            correta = gabarito.get(qid)
+            pontos = pontos_por_questao if (correta is not None and resp == correta) else 0
+
+            if pontos > 0:
+                acertos += 1
+            else:
+                erros += 1
+
+            total_pontos += pontos
+
+            respostas_para_salvar.append({
+                "questao_id": qid,
+                "resposta": resp,
+                "correta": correta,
+                "pontos": pontos
+            })
+
+        res_db.salvar_respostas_em_lote(aluno_id, questionario_id, respostas_para_salvar)
+        taxa_acertos = (acertos / total_questoes) * 100 if total_questoes else 0
+
+        return jsonify({
+            "status": "sucesso",
+            "mensagem": "Respostas salvas",
+            "pontos_totais": total_pontos,
+            "acertos": acertos,
+            "erros": erros,
+            "taxa_acertos": taxa_acertos
+        })
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+# ----------------------------
+# TEMPLATES - ALUNO
 # ----------------------------
 @app.route("/aluno")
 def aluno_home():
-    # Renderiza a tela de listagem de questionários
     return render_template("aluno_listar.html")
 
-# ----------------------------
-# ROTA PARA RESPOSTA DE QUESTIONÁRIO
-# ----------------------------
 @app.route("/aluno/responder/<int:questionario_id>")
 def aluno_responder(questionario_id):
-    # Redireciona para a tela de respostas do questionário selecionado
-    return render_template("aluno_responder.html", id=questionario_id)
+    # envia apenas ID do questionário e um aluno genérico
+    return render_template("aluno_responder.html", id=questionario_id, aluno_id=1)
+
+@app.route("/aluno/resultado")
+def aluno_resultado():
+    return render_template("aluno_resultado.html")
 
 # ----------------------------
+# RANKING DO ALUNO
+# ----------------------------
+@app.route("/aluno/ranking")
+def aluno_ranking():
+    """
+    Recebe via query string:
+    - qid: id do questionário
+    - user_name: nome do aluno
+    - score: pontuação do aluno na atividade
+    """
+    user_name = request.args.get("user_name", "Você")
+    score = request.args.get("score", 0)
+    qid = request.args.get("qid", "")
+
+    return render_template("rankingAluno/ranking.html", user_name=user_name, score=score, qid=qid)
+
+
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({"mensagem": "API do SmartLearn rodando!"})

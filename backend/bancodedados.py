@@ -103,3 +103,4 @@ class Database:
             FROM Questoes WHERE QuestionarioId = ?
         """, (questionario_id,))
         return self.cursor.fetchall()
+

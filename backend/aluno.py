@@ -1,3 +1,4 @@
+# backend/aluno.py
 from tkinter import messagebox
 from .bancodedados import Database  
 
@@ -33,11 +34,15 @@ class UserManager:
         return True
 
     def login(self, username, senha):
-        # Usa o método do Database diretamente
+        """
+        Retorna (id, username) se login for bem sucedido, senão retorna None.
+        """
         user = self.db.verifica_login(username, senha)
+        # verifica_login retorna a linha inteira (Id, Username, Email, Senha, Confirma_Senha)
         if user:
+            user_id = user[0]
             messagebox.showinfo("Login", f"Bem-vindo(a), {username}!")
-            return True
+            return user_id
         else:
             messagebox.showerror("Erro", "Usuário ou senha incorretos.")
-            return False
+            return None

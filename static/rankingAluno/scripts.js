@@ -14,8 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const pontos = content.querySelectorAll('.points');
 
     let max = 300;
-    if (tabName === 'mensal') max = 2000;
-    else if (tabName === 'anual') max = 4000;
+    if (tabName === 'todas') max = 2000;
 
     barras.forEach((bar, i) => {
       const valor = parseInt((pontos[i].innerText || '').replace(/\D/g, '')) || 0;
@@ -46,20 +45,20 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!ativo) return;
 
     const alunos = ativo.querySelectorAll('.lboard_mem');
-    const posicoes = [0, 1, 2]; // 1º, 2º, 3º
     const medalhasArray = [medalhas.ouro, medalhas.prata, medalhas.bronze];
 
     medalhasArray.forEach((medalha, i) => {
       medalha.classList.remove('show');
       setTimeout(() => {
-        const nome = alunos[posicoes[i]].querySelector('.name');
+        if (!alunos[i]) return;
+        const nome = alunos[i].querySelector('.name');
         const rect = nome.getBoundingClientRect();
         medalha.style.top = rect.top + window.scrollY + 'px';
-        medalha.style.left = rect.right + 10 + 'px'; // à direita do nome
+        medalha.style.left = rect.right + 10 + 'px';
         medalha.classList.add('show');
-      }, (i + 1) * 700); // delay entre cada medalha
+      }, (i + 1) * 700);
     });
   }
 
-  showTab('hoje');
+  showTab('atividade');
 });
