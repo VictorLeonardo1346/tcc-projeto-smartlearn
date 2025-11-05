@@ -1,45 +1,138 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Questionários Disponíveis</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
     <style>
-        body { background-color: #f8f9fa; }
-        .card-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .questionario-card {
-            width: 250px;
-            padding: 20px;
-            border-radius: 10px;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            text-align: center;
-        }
-        .questionario-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        }
-        .btn-responder { margin-top: 10px; }
+      body {
+        background-color: #ff0000; /* fundo cinza escuro da tela */
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        color: #fff;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden; /* impede rolagem do body */
+      }
+
+      /* Caixa central onde ficam os cards */
+      .container {
+        background-color: #1e1e1e; /* fundo preto do painel */
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+        width: 90%;
+        max-width: 1000px;
+        height: 80%; /* define área fixa */
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Título */
+      h2 {
+        text-align: left;
+        color: #fff;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      /* Container dos cards (com rolagem interna) */
+      .card-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+        overflow-y: auto; /* rolagem vertical */
+        scrollbar-width: thin; /* para Firefox */
+        scrollbar-color: #666 #1e1e1e; /* cores personalizadas */
+        padding-right: 8px; /* espaço pro scroll */
+        flex: 1; /* ocupa o resto do container */
+      }
+
+      /* Estilo da barra de rolagem (para Chrome, Edge, Safari) */
+      .card-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .card-container::-webkit-scrollbar-thumb {
+        background-color: #666;
+        border-radius: 10px;
+      }
+      .card-container::-webkit-scrollbar-thumb:hover {
+        background-color: #888;
+      }
+
+      /* Card individual */
+      .questionario-card {
+        width: 100%;
+        padding: 15px 20px;
+        border-radius: 10px;
+        background-color: #000;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .questionario-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      }
+
+      /* Texto dentro dos cards */
+      .questionario-card p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      /* Botões */
+      .btn-responder {
+        border: none;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+
+      /* Verde: responder */
+      .btn-responder.responder {
+        background-color: #00b050;
+        color: #fff;
+      }
+      .btn-responder.responder:hover {
+        background-color: #009645;
+      }
+
+      /* Cinza: respondido */
+      .btn-responder.respondido {
+        background-color: #777;
+        color: #fff;
+      }
+      .btn-responder.respondido:hover {
+        background-color: #666;
+      }
     </style>
-</head>
-<body>
-<div class="container">
-    <h2 class="text-center mt-5">📘 Atividades Disponíveis</h2>
-    <p class="text-center">Clique no card de uma atividade para começar a responder.</p>
+  </head>
+  <body>
+    <div class="container">
+      <h2 class="text-center mt-5">📘 Atividades Disponíveis</h2>
+      <p class="text-center">
+        Clique no card de uma atividade para começar a responder.
+      </p>
 
-    <div class="card-container" id="cardsQuestionarios">
+      <div class="card-container" id="cardsQuestionarios">
         <!-- Cards serão inseridos via JS -->
+      </div>
     </div>
-</div>
 
-<script src="/static/aluno/listar.js"></script>
-</body>
+    <script src="/static/aluno/listar.js"></script>
+  </body>
 </html>
