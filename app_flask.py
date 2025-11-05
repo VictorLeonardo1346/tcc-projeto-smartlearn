@@ -1,10 +1,10 @@
-# app_flask.py
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from backend.bancodedados import Database
 from backend.respostas_db import RespostasDB
+import os
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__)
 CORS(app)
 
 # Bancos
@@ -25,16 +25,22 @@ def salvar_questionario():
 
     try:
         questionario_id = db.criar_questionario(materia, titulo, dificuldade, data_entrega)
+
         for q in questoes:
-            enunciado = q.get("enunciado", "")
-            alternativas = q.get("alternativas", {})
+            enunciado = q.get("pergunta", "")
+            alternativas = q.get("alternativas", [])
             correta = q.get("correta", "")
+
             db.adicionar_questao(
                 questionario_id,
                 enunciado,
-                [alternativas.get("a"), alternativas.get("b"), alternativas.get("c"), alternativas.get("d")],
+                [alternativas[0] if len(alternativas) > 0 else "",
+                 alternativas[1] if len(alternativas) > 1 else "",
+                 alternativas[2] if len(alternativas) > 2 else "",
+                 alternativas[3] if len(alternativas) > 3 else ""],
                 correta
             )
+
         return jsonify({"status": "sucesso", "mensagem": "Questionário salvo com sucesso!", "id": questionario_id})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
@@ -138,15 +144,22 @@ def salvar_respostas():
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # ----------------------------
+# SERVIR ARQUIVOS DO QUIZ (CRIACAOQUESTIONARIO)
+# ----------------------------
+@app.route("/criacaoQuestionario/<path:filename>")
+def criacao_questionario_files(filename):
+    return send_from_directory(os.path.join(os.getcwd(), "criacaoQuestionario"), filename)
+
+# ----------------------------
 # TEMPLATES - ALUNO
 # ----------------------------
 @app.route("/aluno")
 def aluno_home():
-    return render_template("aluno_listar.html")
+    questionarios = db.listar_questionarios()
+    return render_template("aluno_listar.html", questionarios=questionarios)
 
 @app.route("/aluno/responder/<int:questionario_id>")
 def aluno_responder(questionario_id):
-    # envia apenas ID do questionário e um aluno genérico
     return render_template("aluno_responder.html", id=questionario_id, aluno_id=1)
 
 @app.route("/aluno/resultado")
@@ -158,18 +171,10 @@ def aluno_resultado():
 # ----------------------------
 @app.route("/aluno/ranking")
 def aluno_ranking():
-    """
-    Recebe via query string:
-    - qid: id do questionário
-    - user_name: nome do aluno
-    - score: pontuação do aluno na atividade
-    """
     user_name = request.args.get("user_name", "Você")
     score = request.args.get("score", 0)
     qid = request.args.get("qid", "")
-
     return render_template("rankingAluno/ranking.html", user_name=user_name, score=score, qid=qid)
-
 
 @app.route("/", methods=["GET"])
 def home():

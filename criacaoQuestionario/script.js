@@ -1,6 +1,7 @@
 let questionCount = 0;
+let dificuldadeSelecionada = null; // ⚠ agora está definida
 
-//  Adiciona uma nova questão
+// Adiciona uma nova questão
 function addQuestion() {
   questionCount++;
   const container = document.getElementById("questionsContainer");
@@ -79,17 +80,17 @@ function addQuestion() {
   container.appendChild(div);
 }
 
-//  Define a dificuldade por questão
+// Define a dificuldade
 function setDificuldadeQuestao(botao, nivel) {
   const parent = botao.closest(".dificuldade-questao");
-  parent
-    .querySelectorAll(".btn-diff")
-    .forEach((b) => b.classList.remove("ativo"));
+  parent.querySelectorAll(".btn-diff").forEach((b) => b.classList.remove("ativo"));
   botao.classList.add("ativo");
   parent.querySelector(".nivel").textContent = nivel;
+
+  dificuldadeSelecionada = nivel; // atualiza a variável global
 }
 
-//  Remove a última questão
+// Remove a última questão
 function removeQuestion() {
   if (questionCount > 0) {
     const container = document.getElementById("questionsContainer");
@@ -100,89 +101,77 @@ function removeQuestion() {
   }
 }
 
-//  Deleta toda a atividade
+// Deleta toda a atividade
 function deletarAtividade() {
   if (confirm("Tem certeza que deseja deletar esta atividade?")) {
     document.getElementById("titulo").value = "";
     document.getElementById("materia").value = "";
     document.getElementById("dataEntrega").value = "";
-    const container = document.getElementById("questionsContainer");
-    container.innerHTML = "";
+    document.getElementById("questionsContainer").innerHTML = "";
     questionCount = 0;
+    dificuldadeSelecionada = null;
   }
 }
 
 // Captura envio do formulário
-document
-  .getElementById("quizForm")
-  .addEventListener("submit", async function (e) {
-    e.preventDefault();
+document.getElementById("quizForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-    if (!dificuldadeSelecionada) {
-      alert("Por favor, selecione a dificuldade da atividade.");
-      return;
-    }
+  if (!dificuldadeSelecionada) {
+    alert("Por favor, selecione a dificuldade da atividade.");
+    return;
+  }
 
-    const materia = document.getElementById("materia").value;
-    const titulo = document.getElementById("titulo").value;
-    const dataEntrega = document.getElementById("dataEntrega").value;
+  const materia = document.getElementById("materia").value;
+  const titulo = document.getElementById("titulo").value;
+  const dataEntrega = document.getElementById("dataEntrega").value;
 
-    if (!materia || !titulo || !dataEntrega) {
-      alert("Por favor, preencha todos os campos obrigatórios.");
-      return;
-    }
+  if (!materia || !titulo || !dataEntrega) {
+    alert("Por favor, preencha todos os campos obrigatórios.");
+    return;
+  }
 
-    const questoes = [];
-    const questions = document.querySelectorAll(".question");
+  const questoes = [];
+  const questions = document.querySelectorAll(".question");
 
-    questions.forEach((q) => {
-      const pergunta = q.querySelector("input[type='text']").value;
-      const alternativasInputs = q.querySelectorAll(
-        ".options input[type='text']"
-      );
-      const radios = q.querySelectorAll("input[type='radio']");
-      let correta = null;
+  questions.forEach((q) => {
+    const pergunta = q.querySelector("input[type='text']").value; // enunciado
+    const alternativasInputs = q.querySelectorAll(".options input[type='text']");
+    const radios = q.querySelectorAll("input[type='radio']");
+    let correta = null;
 
-      radios.forEach((r) => {
-        if (r.checked) correta = r.value;
-      });
+    radios.forEach((r) => { if (r.checked) correta = r.value; });
 
-      const alternativas = [
-        alternativasInputs[0]?.value || "",
-        alternativasInputs[1]?.value || "",
-        alternativasInputs[2]?.value || "",
-        alternativasInputs[3]?.value || "",
-      ];
+    const alternativas = [
+      alternativasInputs[0]?.value || "",
+      alternativasInputs[1]?.value || "",
+      alternativasInputs[2]?.value || "",
+      alternativasInputs[3]?.value || "",
+    ];
 
-      questoes.push({ pergunta, alternativas, correta });
+    questoes.push({ pergunta, alternativas, correta });
+  });
+
+  const atividade = { materia, titulo, dificuldade: dificuldadeSelecionada, dataEntrega, questoes };
+
+  console.log("Enviando atividade:", atividade);
+
+  try {
+    const resp = await fetch("/salvar_questionario", {  // ⚠ usa rota relativa
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(atividade),
     });
 
-    const atividade = {
-      materia,
-      titulo,
-      dificuldade: dificuldadeSelecionada,
-      dataEntrega,
-      questoes,
-    };
-
-    console.log("Enviando atividade:", atividade);
-
-    try {
-      const resp = await fetch("http://127.0.0.1:5001/salvar_questionario", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(atividade),
-      });
-
-      const data = await resp.json();
-      if (data.status === "sucesso") {
-        alert(data.mensagem + " (ID: " + data.id + ")");
-        location.reload();
-      } else {
-        alert("Erro: " + data.mensagem);
-      }
-    } catch (err) {
-      console.error("Erro ao salvar:", err);
-      alert("Erro ao salvar a atividade!");
+    const data = await resp.json();
+    if (data.status === "sucesso") {
+      alert(data.mensagem + " (ID: " + data.id + ")");
+      location.reload();
+    } else {
+      alert("Erro: " + data.mensagem);
     }
-  });
+  } catch (err) {
+    console.error("Erro ao salvar:", err);
+    alert("Erro ao salvar a atividade!");
+  }
+});
