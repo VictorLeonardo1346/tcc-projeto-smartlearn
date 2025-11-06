@@ -1,28 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Responder Questionário</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f2f2f2; }
-        h1 { text-align: center; }
-        .question { background-color: #fff; padding: 15px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
-        .options label { display: block; margin: 5px 0; }
-        #submitBtn { display: block; margin: 20px auto; padding: 10px 30px; font-size: 16px; background-color: #007ACC; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        #submitBtn:hover { background-color: #005F99; }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #ff0000; /* fundo vermelho escuro */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      /* Painel central */
+      .painel {
+        background-color: #d9d9d9; /* cinza claro */
+        width: 80%;
+        max-width: 700px;
+        padding: 40px 50px;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        text-align: center;
+      }
+
+      /* Título */
+      .painel h1 {
+        color: #000;
+        font-size: 28px;
+        margin-bottom: 40px;
+      }
+
+      /* Questões */
+      .question {
+        background-color: #fff;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        text-align: left;
+      }
+
+      /* Alternativas */
+      .options label {
+        display: block;
+        margin: 5px 0;
+        cursor: pointer;
+      }
+
+      /* Botão principal */
+      #submitBtn {
+        display: block;
+        margin: 30px auto 0;
+        padding: 12px 35px;
+        font-size: 16px;
+        background-color: #008000; /* verde SmartLearn */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+
+      #submitBtn:hover {
+        background-color: #006400; /* verde escuro */
+        transform: scale(1.05);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div class="painel">
+      <h1>Responder Formulário</h1>
 
-<h1>Responder Questionário</h1>
-<div id="questionsContainer"></div>
-<button id="submitBtn">Enviar Respostas</button>
+      <div id="questionsContainer">
+        <!-- Suas questões serão carregadas aqui -->
+      </div>
 
-<script>
-    // ID do questionário injetado pelo Flask
-    const questionarioId = {{ id | tojson }};
-</script>
+      <button id="submitBtn">Enviar Respostas</button>
+    </div>
 
-<script src="/static/aluno/responder.js"></script>
-</body>
+    <script>
+      // ID do questionário injetado pelo Flask
+      const questionarioId = {{ id | tojson }};
+    </script>
+
+    <script src="/static/aluno/responder.js"></script>
+  </body>
 </html>
