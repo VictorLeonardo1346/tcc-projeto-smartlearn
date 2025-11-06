@@ -234,5 +234,8 @@ class ProfessorPage:
         ).place(relx=0.5, rely=0.59, anchor=CENTER)
 
     def abrir_criacao_questionario(self):
-        caminho_html = os.path.abspath("criacaoQuestionario/quiz_form.html")
-        webbrowser.open_new_tab(f"file:///{caminho_html}")
+        """
+        Abre no navegador a página de criação de questionário hospedada pelo Flask.
+        """
+        url = f"{BASE_URL}/professor/criar_questionario"
+        webbrowser.open_new_tab(url)
