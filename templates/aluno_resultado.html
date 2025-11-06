@@ -21,53 +21,45 @@
     <h1>Resultado</h1>
     <p id="intro">Carregando resultados...</p>
 
-    <div class="metrics" id="metrics" style="display:none">
+    <div class="metrics" id="metrics">
       <div class="metric">
-        <div class="big" id="score">0</div>
+        <div class="big" id="score">{{ score }}</div>
         <div class="small">Pontuação</div>
       </div>
       <div class="metric">
-        <div class="big" id="acertos">0</div>
+        <div class="big" id="acertos">{{ acertos }} / {{ total }}</div>
         <div class="small">Acertos</div>
       </div>
       <div class="metric">
-        <div class="big" id="erros">0</div>
+        <div class="big" id="erros">{{ erros }}</div>
         <div class="small">Erros</div>
       </div>
       <div class="metric">
-        <div class="big" id="taxa">0%</div>
+        <div class="big" id="taxa">{{ taxa }}%</div>
         <div class="small">Taxa de acertos</div>
       </div>
     </div>
 
     <a id="voltar" class="btn" href="/aluno">Voltar para atividades</a>
-    <a id="verRanking" class="btn" style="background:#28a745; margin-left:8px" href="#">Ver ranking (desta atividade)</a>
+    <a id="verRanking" class="btn" style="background:#28a745; margin-left:8px"
+       href="/aluno/ranking?qid={{ qid }}&user_name={{ user_name|urlencode }}&score={{ score }}">Ver ranking (desta atividade)</a>
   </div>
 
   <script>
-    // pega parâmetros da query string
-    const params = new URLSearchParams(window.location.search);
-    const score = params.get("score") ?? params.get("pontuacao") ?? "0";
-    const acertos = params.get("acertos") ?? "0";
-    const erros = params.get("erros") ?? "0";
-    const total = params.get("total") ?? "0";
-    const user_name = params.get("user_name") ?? "Você"; // pega nome do aluno
-    const taxa = params.get("taxa") ?? (total == 0 ? "0" : ((acertos/total)*100).toFixed(2));
+    const qid = "{{ qid }}";
+    const userName = "{{ user_name }}";
+    const score = "{{ score }}";
+    const acertos = "{{ acertos }}";
+    const total = "{{ total }}";
+    const erros = "{{ erros }}";
+    const taxa = "{{ taxa }}";
 
     document.getElementById("metrics").style.display = "flex";
     document.getElementById("score").textContent = score;
     document.getElementById("acertos").textContent = acertos + " / " + total;
     document.getElementById("erros").textContent = erros;
     document.getElementById("taxa").textContent = taxa + "%";
-    document.getElementById("intro").textContent = `Você finalizou a atividade (Questionário ID: ${params.get("qid") || "?"}).`;
-
-    // Configura o link do botão "Ver ranking (desta atividade)"
-    const qid = params.get("qid");
-    if (qid) {
-      document.getElementById("verRanking").href = `/aluno/ranking?qid=${qid}&user_name=${encodeURIComponent(user_name)}&score=${score}`;
-    } else {
-      document.getElementById("verRanking").style.display = "none";
-    }
+    document.getElementById("intro").textContent = `Você finalizou a atividade (Questionário ID: ${qid}).`;
   </script>
 </body>
 </html>

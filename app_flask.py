@@ -146,6 +146,10 @@ def salvar_respostas():
 # ----------------------------
 # SERVIR ARQUIVOS DO QUIZ (CRIACAOQUESTIONARIO)
 # ----------------------------
+@app.route("/professor/criar_questionario")
+def criar_questionario():
+    return send_from_directory(os.path.join(os.getcwd(), "criacaoQuestionario"), "quiz_form.html")
+
 @app.route("/criacaoQuestionario/<path:filename>")
 def criacao_questionario_files(filename):
     return send_from_directory(os.path.join(os.getcwd(), "criacaoQuestionario"), filename)
@@ -166,9 +170,6 @@ def aluno_responder(questionario_id):
 def aluno_resultado():
     return render_template("aluno_resultado.html")
 
-# ----------------------------
-# RANKING DO ALUNO
-# ----------------------------
 @app.route("/aluno/ranking")
 def aluno_ranking():
     user_name = request.args.get("user_name", "Você")

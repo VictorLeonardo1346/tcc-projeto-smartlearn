@@ -1,7 +1,6 @@
 let questionCount = 0;
-let dificuldadeSelecionada = null; // ⚠ agora está definida
+let dificuldadeSelecionada = null;
 
-// Adiciona uma nova questão
 function addQuestion() {
   questionCount++;
   const container = document.getElementById("questionsContainer");
@@ -10,7 +9,6 @@ function addQuestion() {
   div.classList.add("question");
   div.id = "question-" + questionCount;
 
-  // Título da questão
   const label = document.createElement("label");
   label.textContent = "Questão " + questionCount;
   div.appendChild(label);
@@ -20,7 +18,6 @@ function addQuestion() {
   inputPergunta.placeholder = "Digite o enunciado da questão";
   div.appendChild(inputPergunta);
 
-  // Dificuldade por questão
   const diffDiv = document.createElement("div");
   diffDiv.classList.add("dificuldade-questao");
   diffDiv.innerHTML = `
@@ -32,7 +29,6 @@ function addQuestion() {
   `;
   div.appendChild(diffDiv);
 
-  // Upload da imagem
   const imgLabel = document.createElement("label");
   imgLabel.textContent = "Imagem (opcional):";
   div.appendChild(imgLabel);
@@ -53,13 +49,11 @@ function addQuestion() {
   imgPreview.style.marginTop = "10px";
   div.appendChild(imgPreview);
 
-  // Alternativas
   const optionsDiv = document.createElement("div");
   optionsDiv.classList.add("options");
 
   ["a", "b", "c", "d"].forEach((letra, i) => {
     const optLabel = document.createElement("label");
-
     const radio = document.createElement("input");
     radio.type = "radio";
     radio.name = "correct-" + questionCount;
@@ -80,17 +74,14 @@ function addQuestion() {
   container.appendChild(div);
 }
 
-// Define a dificuldade
 function setDificuldadeQuestao(botao, nivel) {
   const parent = botao.closest(".dificuldade-questao");
   parent.querySelectorAll(".btn-diff").forEach((b) => b.classList.remove("ativo"));
   botao.classList.add("ativo");
   parent.querySelector(".nivel").textContent = nivel;
-
-  dificuldadeSelecionada = nivel; // atualiza a variável global
+  dificuldadeSelecionada = nivel;
 }
 
-// Remove a última questão
 function removeQuestion() {
   if (questionCount > 0) {
     const container = document.getElementById("questionsContainer");
@@ -101,7 +92,6 @@ function removeQuestion() {
   }
 }
 
-// Deleta toda a atividade
 function deletarAtividade() {
   if (confirm("Tem certeza que deseja deletar esta atividade?")) {
     document.getElementById("titulo").value = "";
@@ -113,7 +103,6 @@ function deletarAtividade() {
   }
 }
 
-// Captura envio do formulário
 document.getElementById("quizForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -135,11 +124,10 @@ document.getElementById("quizForm").addEventListener("submit", async function (e
   const questions = document.querySelectorAll(".question");
 
   questions.forEach((q) => {
-    const pergunta = q.querySelector("input[type='text']").value; // enunciado
+    const pergunta = q.querySelector("input[type='text']").value;
     const alternativasInputs = q.querySelectorAll(".options input[type='text']");
     const radios = q.querySelectorAll("input[type='radio']");
     let correta = null;
-
     radios.forEach((r) => { if (r.checked) correta = r.value; });
 
     const alternativas = [
@@ -154,10 +142,8 @@ document.getElementById("quizForm").addEventListener("submit", async function (e
 
   const atividade = { materia, titulo, dificuldade: dificuldadeSelecionada, dataEntrega, questoes };
 
-  console.log("Enviando atividade:", atividade);
-
   try {
-    const resp = await fetch("/salvar_questionario", {  // ⚠ usa rota relativa
+    const resp = await fetch("/salvar_questionario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(atividade),

@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ranking de Alunos</title>
   <link rel="stylesheet" href="/static/rankingAluno/styles.css" />
+  <style>
+    .bar .inner_bar { transition: width 1s ease; }
+  </style>
 </head>
 <body>
   <div class="lboard">
@@ -17,62 +20,16 @@
     </div>
 
     <div class="lboard_wrap">
-      <!-- ABA ESTA ATIVIDADE -->
       <div class="lboard_item atividade active" id="ranking-atividade"></div>
-
-      <!-- ABA TODAS AS ATIVIDADES -->
       <div class="lboard_item todas" id="ranking-todas"></div>
     </div>
   </div>
 
-  <!-- Medalhas animadas -->
   <img src="/static/rankingAluno/img/medalha-ouro.gif" class="medalha medalha-ouro" alt="Medalha de Ouro" />
   <img src="/static/rankingAluno/img/medalha-prata.gif" class="medalha medalha-prata" alt="Medalha de Prata" />
   <img src="/static/rankingAluno/img/medalha-bronze.gif" class="medalha medalha-bronze" alt="Medalha de Bronze" />
 
-  <script>
-    // Dados passados pelo Flask
-    const userName = "{{ user_name }}"; // Nome real do aluno logado
-    const userScore = {{ score }};      // Pontuação do aluno logado
-    const qid = "{{ qid }}";            // ID do questionário
-
-    function gerarRanking(containerId, lista) {
-      const container = document.getElementById(containerId);
-      container.innerHTML = "";
-
-      lista.forEach((item, i) => {
-        // Se for o aluno logado, mostra "Você (NomeReal)"
-        let displayName = item.nome === userName ? `Você (${userName})` : item.nome;
-
-        const div = document.createElement("div");
-        div.className = "lboard_mem";
-        div.innerHTML = `
-          <div class="name">${i + 1}. ${displayName}</div>
-          <div class="points">${item.pontos} pts</div>
-          <div class="bar"><div class="inner_bar"></div></div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    // Ranking da atividade atual: primeiro lugar é o aluno logado
-    const rankingAtividade = [
-      { nome: userName, pontos: userScore },
-      { nome: "Aluno 2", pontos: 80 },
-      { nome: "Aluno 3", pontos: 70 },
-    ];
-
-    // Ranking de todas atividades (exemplo, futuramente do banco)
-    const rankingTodas = [
-      { nome: "Aluno X", pontos: 300 },
-      { nome: "Aluno Y", pontos: 250 },
-      { nome: "Aluno Z", pontos: 200 },
-    ];
-
-    gerarRanking("ranking-atividade", rankingAtividade);
-    gerarRanking("ranking-todas", rankingTodas);
-  </script>
-
-  <script src="/static/rankingAluno/scripts.js"></script>
+  <!-- Link para JS de ranking -->
+  <script src="/static/js/ranking.js"></script>
 </body>
 </html>
