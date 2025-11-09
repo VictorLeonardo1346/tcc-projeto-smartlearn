@@ -3,9 +3,7 @@ import customtkinter as ctk
 from tkinter import *
 from PIL import Image, ImageTk
 import webbrowser
-import os
 from tkinter import messagebox
-import sqlite3
 
 BASE_URL = "http://127.0.0.1:5001"  # URL do Flask
 
@@ -67,20 +65,14 @@ class LoginPage:
         if perfil == "Aluno":
             user_id = self.user_manager.login(username, senha)
             if user_id:
-                # guarda nome e id no app para uso futuro
                 self.app.username_login = username
                 self.app.user_id = user_id
-                # Abre a listagem de questionários passando user_id na query string
-                url = f"{BASE_URL}/aluno?user_id={user_id}"
-                webbrowser.open_new_tab(url)
                 self.app.mostrar_aluno()
             else:
-                # mensagem já exibida no UserManager.login
                 pass
         elif perfil == "Professor":
             if username in self.professores_fixos and self.professores_fixos[username]["senha"] == senha:
                 self.app.username_login = self.professores_fixos[username]["nome"]
-                # professor abre sua tela local (Tk)
                 self.app.mostrar_professor()
             else:
                 messagebox.showerror("Erro", "Usuário ou senha de professor incorretos")
@@ -161,7 +153,7 @@ class AlunoPage:
             font=("Century Gothic", 16),
             fg_color="#007ACC",
             hover_color="#005F99",
-            command=self.abrir_lista_questionarios  # abre a listagem no navegador
+            command=self.abrir_lista_questionarios
         ).place(relx=0.5, rely=0.5, anchor=CENTER)
 
         ctk.CTkButton(
@@ -173,18 +165,16 @@ class AlunoPage:
             command=self.app.mostrar_login
         ).place(relx=0.5, rely=0.58, anchor=CENTER)
 
+    # Dentro da classe AlunoPage
+
     def abrir_lista_questionarios(self):
-        """Abre a página de listagem de questionários para o aluno escolher qual responder.
-           Usa o user_id que ficou armazenado no app (caso exista) e passa via query-string."""
+        """Abre a página de listagem de questionários para o aluno."""
         try:
-            user_id = getattr(self.app, "user_id", None)
-            if user_id:
-                url = f"{BASE_URL}/aluno?user_id={user_id}"
-            else:
-                url = f"{BASE_URL}/aluno"
+            url = f"{BASE_URL}/aluno"  # SEM user_id
             webbrowser.open_new_tab(url)
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir a página de questionários.\n{e}")
+
 
 
 class ProfessorPage:
@@ -234,8 +224,5 @@ class ProfessorPage:
         ).place(relx=0.5, rely=0.59, anchor=CENTER)
 
     def abrir_criacao_questionario(self):
-        """
-        Abre no navegador a página de criação de questionário hospedada pelo Flask.
-        """
         url = f"{BASE_URL}/professor/criar_questionario"
         webbrowser.open_new_tab(url)

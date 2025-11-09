@@ -1,11 +1,9 @@
+// static/aluno/responder.js
 window.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("questionsContainer");
     const btnEnviar = document.getElementById("submitBtn");
 
     if (!container) return;
-
-    let gabarito = {};
-    let totalQuestions = 0;
 
     async function carregarQuestoes() {
         try {
@@ -14,12 +12,8 @@ window.addEventListener("DOMContentLoaded", () => {
             const questoes = await resp.json();
 
             container.innerHTML = "";
-            gabarito = {};
-            totalQuestions = questoes.length;
 
             questoes.forEach((q, i) => {
-                gabarito[q.id] = q.correta;
-
                 const div = document.createElement("div");
                 div.className = "question";
 
@@ -32,7 +26,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
                 const alternativas = q.alternativas || ["", "", "", ""];
 
-                ["a","b","c","d"].forEach((letra, idx) => {
+                ["a", "b", "c", "d"].forEach((letra, idx) => {
                     const label = document.createElement("label");
                     const radio = document.createElement("input");
                     radio.type = "radio";
@@ -49,22 +43,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error(err);
-            alert("Erro ao carregar questões.");
+            alert("Erro ao carregar questões: " + err.message);
         }
-    }
-
-    function calcularResultados(respostasUsuario) {
-        let acertos = 0;
-        for (const [qidStr, resp] of Object.entries(respostasUsuario)) {
-            const qid = Number(qidStr);
-            if (gabarito[qid] === resp) acertos++;
-        }
-        const pontosPorQuestao = totalQuestions > 0 ? Math.round(100 / totalQuestions) : 0;
-        const totalPontos = acertos * pontosPorQuestao;
-        return { acertos, totalPontos };
     }
 
     async function enviarRespostas() {
+        // coleta respostas marcadas
         const radiosChecked = document.querySelectorAll("input[type=radio]:checked");
         const respostasUsuario = {};
         radiosChecked.forEach(r => {
@@ -72,34 +56,45 @@ window.addEventListener("DOMContentLoaded", () => {
             if (!Number.isNaN(qid)) respostasUsuario[qid] = r.value;
         });
 
-        const resultados = calcularResultados(respostasUsuario);
-
+        // transforma para o formato esperado pela API
         const listaEnvio = Object.entries(respostasUsuario).map(([qid, resp]) => ({
             questao_id: Number(qid),
             resposta: resp
         }));
 
         try {
-            await fetch("/api/salvar_respostas", {
+            const resp = await fetch("/api/salvar_respostas", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    aluno_id: 1, // provisório
                     questionario_id: Number(questionarioId),
                     respostas: listaEnvio
                 })
             });
 
+            const dados = await resp.json();
+            if (!resp.ok || dados.status !== "sucesso") {
+                throw new Error(dados.mensagem || "Erro desconhecido do servidor");
+            }
+
+            // recebe do servidor: pontos_totais, acertos, erros, total, taxa
             const params = new URLSearchParams({
                 qid: questionarioId,
-                score: resultados.totalPontos,
-                acertos: resultados.acertos,
-                total: totalQuestions
+                score: dados.pontos_totais,
+                acertos: dados.acertos,
+                erros: dados.erros,
+                total: dados.total,
+                taxa: dados.taxa,
+                user_name: "Aluno 1"
             });
 
+            // redireciona para a página de resultado com os parâmetros vindos do servidor
             window.location.href = `/aluno/resultado?${params.toString()}`;
+
         } catch (err) {
             console.error(err);
-            alert("Erro ao enviar respostas.");
+            alert("Erro ao enviar respostas: " + (err.message || err));
         }
     }
 
