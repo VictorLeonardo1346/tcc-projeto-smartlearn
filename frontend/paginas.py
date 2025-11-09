@@ -175,8 +175,6 @@ class AlunoPage:
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir a página de questionários.\n{e}")
 
-
-
 class ProfessorPage:
     def __init__(self, app):
         self.app = app

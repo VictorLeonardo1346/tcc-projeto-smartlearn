@@ -57,7 +57,8 @@ function addQuestion() {
     const radio = document.createElement("input");
     radio.type = "radio";
     radio.name = "correct-" + questionCount;
-    radio.value = i + 1;
+    // valor usado como "correta" — string "1","2","3","4"
+    radio.value = String(i + 1);
 
     const altInput = document.createElement("input");
     altInput.type = "text";
@@ -79,6 +80,7 @@ function setDificuldadeQuestao(botao, nivel) {
   parent.querySelectorAll(".btn-diff").forEach((b) => b.classList.remove("ativo"));
   botao.classList.add("ativo");
   parent.querySelector(".nivel").textContent = nivel;
+  // define dificuldade global (se quiser dificuldade por questão, é preciso salvar por questão)
   dificuldadeSelecionada = nivel;
 }
 
@@ -107,8 +109,7 @@ document.getElementById("quizForm").addEventListener("submit", async function (e
   e.preventDefault();
 
   if (!dificuldadeSelecionada) {
-    alert("Por favor, selecione a dificuldade da atividade.");
-    return;
+    if (!confirm("Você não escolheu uma dificuldade global. Continuar mesmo assim?")) return;
   }
 
   const materia = document.getElementById("materia").value;
@@ -124,7 +125,7 @@ document.getElementById("quizForm").addEventListener("submit", async function (e
   const questions = document.querySelectorAll(".question");
 
   questions.forEach((q) => {
-    const pergunta = q.querySelector("input[type='text']").value;
+    const pergunta = (q.querySelector("input[type='text']") || { value: "" }).value;
     const alternativasInputs = q.querySelectorAll(".options input[type='text']");
     const radios = q.querySelectorAll("input[type='radio']");
     let correta = null;
@@ -140,7 +141,7 @@ document.getElementById("quizForm").addEventListener("submit", async function (e
     questoes.push({ pergunta, alternativas, correta });
   });
 
-  const atividade = { materia, titulo, dificuldade: dificuldadeSelecionada, dataEntrega, questoes };
+  const atividade = { materia, titulo, dificuldade: dificuldadeSelecionada || "", dataEntrega, questoes };
 
   try {
     const resp = await fetch("/salvar_questionario", {

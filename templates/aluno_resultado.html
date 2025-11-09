@@ -1,179 +1,118 @@
-<!-- templates/aluno_resultado.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <title>Resultado do Questionário</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>
-      /* === Estilo SmartLearn === */
-      body {
-        font-family: "Segoe UI", sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #980909; /* fundo vermelho escuro */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Resultado do Questionário</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/resultado.css') }}">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #6ec1e4, #2e8b57);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #333;
+    }
 
-      /* Painel central */
-      .card {
-        background-color: #d9d9d9; /* cinza claro */
-        width: 85%;
-        max-width: 700px;
-        padding: 40px 50px;
-        border-radius: 12px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        text-align: center;
-      }
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      padding: 40px;
+      max-width: 600px;
+      text-align: center;
+      animation: fadeIn 0.7s ease-in-out;
+    }
 
-      h1 {
-        margin-top: 0;
-        color: #000;
-        font-size: 28px;
-        margin-bottom: 30px;
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-      p {
-        color: #222;
-        font-size: 16px;
-        margin-bottom: 25px;
-      }
+    h1 {
+      color: #2e8b57;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
 
-      /* Métricas */
-      .metrics {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 20px;
-      }
+    h2 {
+      font-size: 22px;
+      color: #333;
+    }
 
-      .metric {
-        flex: 1 1 150px;
-        background: #f3f3f3;
-        padding: 15px;
-        border-radius: 8px;
-        text-align: center;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-      }
+    .info {
+      margin-top: 20px;
+      font-size: 18px;
+      line-height: 1.8;
+      text-align: left;
+    }
 
-      .big {
-        font-size: 28px;
-        font-weight: 700;
-        color: #000;
-      }
+    .info span {
+      font-weight: bold;
+      color: #2e8b57;
+    }
 
-      .small {
-        color: #444;
-        font-size: 13px;
-      }
+    .botoes {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
 
-      /* Botões */
-      .btn {
-        display: inline-block;
-        margin-top: 30px;
-        padding: 12px 24px;
-        font-size: 16px;
-        border-radius: 8px;
-        text-decoration: none;
-        transition: all 0.2s ease-in-out;
-        color: #fff;
-      }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
 
-      .btn:hover {
-        transform: scale(1.05);
-      }
+    .ranking {
+      background-color: #2e8b57;
+      color: #fff;
+    }
 
-      .btn-voltar {
-        background-color: #007acc;
-      }
+    .ranking:hover {
+      background-color: #256b44;
+    }
 
-      .btn-voltar:hover {
-        background-color: #005f99;
-      }
+    .voltar {
+      background-color: #6ec1e4;
+      color: #fff;
+    }
 
-      .btn-ranking {
-        background-color: #008000;
-        margin-left: 10px;
-      }
+    .voltar:hover {
+      background-color: #4da1c8;
+    }
 
-      .btn-ranking:hover {
-        background-color: #006400;
-      }
-    </style>
-  </head>
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Resultado do Questionário</h1>
+    <h2>Aluno: {{ aluno_nome }}</h2>
+    <p><strong>ID do Questionário:</strong> {{ questionario_id }}</p>
 
-  <body>
-    <div class="card">
-      <h1>Resultado do Questionário</h1>
-      <p id="intro">Carregando resultados...</p>
-
-      <div class="metrics" id="metrics" style="display: none">
-        <div class="metric">
-          <div class="big" id="score">0</div>
-          <div class="small">Pontuação</div>
-        </div>
-        <div class="metric">
-          <div class="big" id="acertos">0</div>
-          <div class="small">Acertos</div>
-        </div>
-        <div class="metric">
-          <div class="big" id="erros">0</div>
-          <div class="small">Erros</div>
-        </div>
-        <div class="metric">
-          <div class="big" id="taxa">0%</div>
-          <div class="small">Taxa de acertos</div>
-        </div>
-      </div>
-
-      <div>
-        <a id="voltar" class="btn btn-voltar" href="/aluno"
-          >Voltar para atividades</a
-        >
-        <a id="verRanking" class="btn btn-ranking" href="#"
-          >Ver ranking (desta atividade)</a
-        >
-      </div>
+    <div class="info">
+      <p><strong>Acertos:</strong> <span>{{ acertos }}</span></p>
+      <p><strong>Erros:</strong> <span>{{ erros }}</span></p>
+      <p><strong>Total de Questões:</strong> <span>{{ total }}</span></p>
+      <p><strong>Taxa de Acerto:</strong> <span>{{ taxa }}%</span></p>
+      <p><strong>Pontuação Total:</strong> <span>{{ pontos }}</span></p>
     </div>
 
-    <script>
-      // pega parâmetros da query string
-      const params = new URLSearchParams(window.location.search);
-      const score = params.get("score") ?? params.get("pontuacao") ?? "0";
-      const acertos = params.get("acertos") ?? "0";
-      const erros = params.get("erros") ?? "0";
-      const total = params.get("total") ?? "0";
-      const user_name = params.get("user_name") ?? "Você"; // pega nome do aluno
-      const taxa =
-        params.get("taxa") ??
-        (total == 0 ? "0" : ((acertos / total) * 100).toFixed(2));
-
-      document.getElementById("metrics").style.display = "flex";
-      document.getElementById("score").textContent = score;
-      document.getElementById("acertos").textContent = acertos + " / " + total;
-      document.getElementById("erros").textContent = erros;
-      document.getElementById("taxa").textContent = taxa + "%";
-      document.getElementById(
-        "intro"
-      ).textContent = `Você finalizou a atividade (Questionário ID: ${
-        params.get("qid") || "?"
-      }).`;
-
-      // Configura o link do botão "Ver ranking (desta atividade)"
-      const qid = params.get("qid");
-      if (qid) {
-        document.getElementById(
-          "verRanking"
-        ).href = `/aluno/ranking?qid=${qid}&user_name=${encodeURIComponent(
-          user_name
-        )}&score=${score}`;
-      } else {
-        document.getElementById("verRanking").style.display = "none";
-      }
-    </script>
-  </body>
+    <div class="botoes">
+      <form action="{{ url_for('aluno_ranking') }}" method="get">
+        <button class="ranking" type="submit">Ver Ranking</button>
+      </form>
+      <form action="{{ url_for('aluno_home') }}" method="get">
+        <button class="voltar" type="submit">Voltar para Lista</button>
+      </form>
+    </div>
+  </div>
+</body>
 </html>
