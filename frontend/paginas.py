@@ -170,8 +170,19 @@ class AlunoPage:
     def abrir_lista_questionarios(self):
         """Abre a página de listagem de questionários para o aluno."""
         try:
-            url = f"{BASE_URL}/aluno"  # SEM user_id
-            webbrowser.open_new_tab(url)
+            import requests
+
+            # 🔹 Encerra qualquer sessão web anterior
+            requests.get(f"{BASE_URL}/logout")
+
+            # 🔹 Abre o navegador direto na tela de login web (para forçar o login)
+            webbrowser.open_new_tab(f"{BASE_URL}/login")
+
+            messagebox.showinfo(
+                "Aviso",
+                "Por segurança, faça login novamente no navegador antes de acessar os formulários."
+            )
+
         except Exception as e:
             messagebox.showerror("Erro", f"Não foi possível abrir a página de questionários.\n{e}")
 

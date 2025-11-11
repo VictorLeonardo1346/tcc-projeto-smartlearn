@@ -1,75 +1,155 @@
+/* static/rankingAluno/styles.css */
+
+/* ===== RESET E BASE ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
 body {
-    font-family: 'Poppins', sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding: 0;
+  background: linear-gradient(135deg, #1e1f29, #2a2b38);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
-.ranking-container {
-    max-width: 600px;
-    margin: 40px auto;
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+/* ===== CONTAINER PRINCIPAL ===== */
+.lboard {
+  width: 90%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
 }
 
-h1, h2 {
-    text-align: center;
-    color: #333;
+/* ===== ABAS SUPERIORES ===== */
+.lboard_tabs ul {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-.ranking-box {
-    margin-top: 20px;
+.lboard_tabs ul li {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  color: #bbb;
+}
+
+.lboard_tabs ul li.active {
+  color: #fff;
+  border-bottom: 3px solid #ffcb00;
+  font-weight: 600;
+}
+
+/* ===== LISTA DE ALUNOS ===== */
+.lboard_item {
+  display: none;
+}
+
+.lboard_item.active {
+  display: block;
 }
 
 .lboard_mem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
-    background: #eef2f3;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin-bottom: 15px;
+  transition: transform 0.2s ease, background 0.3s ease;
 }
 
+.lboard_mem:hover {
+  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ===== NOME, PONTOS E MEDALHAS ===== */
 .name {
-    font-weight: 600;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
 .points {
-    font-size: 0.9em;
-    color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #ffd700;
+  margin-top: 5px;
 }
 
+.medalha-inline {
+  width: 26px;
+  height: 26px;
+  vertical-align: middle;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  animation: brilhar 1.5s ease-in-out infinite;
+}
+
+@keyframes brilhar {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+/* ===== BARRAS DE PROGRESSO ===== */
 .bar {
-    width: 100%;
-    height: 8px;
-    background: #ddd;
-    border-radius: 5px;
-    margin-top: 5px;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 6px 0;
 }
 
 .inner_bar {
-    height: 8px;
-    background: #4CAF50;
-    border-radius: 5px;
+  height: 100%;
+  background: linear-gradient(90deg, #ffcb00, #ff8800);
+  border-radius: 6px;
+  width: 0%;
+  transition: width 1.2s ease;
 }
 
-.botoes {
-    text-align: center;
-    margin-top: 20px;
+/* ===== POSICIONAMENTO ===== */
+.lboard_mem .bar + .points {
+  margin-top: 8px;
 }
 
-.botoes button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-}
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 480px) {
+  .lboard {
+    padding: 15px;
+  }
 
-.botoes button:hover {
-    background-color: #45a049;
+  .lboard_mem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lboard_mem .points {
+    justify-content: flex-start;
+    margin-top: 5px;
+  }
 }

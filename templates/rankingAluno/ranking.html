@@ -1,31 +1,114 @@
+<!-- templates/rankingAluno/ranking.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking dos Alunos</title>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ranking de Alunos</title>
+    <link rel="stylesheet" href="/static/rankingAluno/styles.css" />
+    <style>
+      .lboard_mem {
+        margin-bottom: 18px;
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
 
-    <!-- Corrigido o caminho para CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='../rankingAluno/styles.css') }}">
-</head>
-<body>
-    <div class="ranking-container">
-        <h1>🏆 Ranking da Atividade</h1>
-        <div id="ranking-atividade" class="ranking-box"></div>
+      .name {
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #111;
+      }
 
-        <h2>Ranking Geral</h2>
-        <div id="ranking-todas" class="ranking-box"></div>
+      /* linha que contém a barra e o bloco de pontos */
+      .row-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
 
-        <div class="botoes">
-            <button onclick="window.location.href='/'">Voltar ao Início</button>
-        </div>
+      /* container da barra */
+      .bar {
+        flex: 1;
+        position: relative;
+        background: #ddd;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 12px;
+      }
+
+      /* parte interna da barra (pontuação) */
+      .inner_bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, #e9a208, #ffc107);
+        border-radius: 12px;
+        height: 100%;
+        transition: width 0.6s ease;
+      }
+
+      /* bloco de pontos e medalha à direita */
+      .points {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        min-width: 90px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #222;
+      }
+
+      .medalha-inline {
+        width: 28px;
+        height: 28px;
+      }
+
+      .no-medal {
+        width: 28px;
+        height: 28px;
+        display: inline-block;
+      }
+
+      @media (max-width: 600px) {
+        .bar {
+          height: 10px;
+        }
+        .points {
+          font-size: 13px;
+          min-width: 70px;
+        }
+        .medalha-inline {
+          width: 22px;
+          height: 22px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="lboard">
+      <div class="lboard_tabs">
+        <ul>
+          <li data-li="atividade" class="active">Esta Atividade</li>
+          <li data-li="todas">Todas as Atividades</li>
+        </ul>
+      </div>
+
+      <div class="lboard_wrap">
+        <div class="lboard_item atividade active" id="ranking-atividade"></div>
+        <div class="lboard_item todas" id="ranking-todas"></div>
+      </div>
     </div>
 
-    <!-- Corrigido o caminho para JS -->
+    <!-- Passa os dados reais do Flask para o JS -->
     <script>
-        const userName = "{{ user_name|safe }}";
-        const userScore = Number("{{ score|safe }}") || 0;
+      window.rankingAtividade = {{ ranking_atividade | tojson }};
+      window.rankingTodas = {{ ranking_geral | tojson }};
+      window.userName = "{{ user_name }}";
     </script>
-    <script src="{{ url_for('static', filename='../rankingAluno/ranking.js') }}"></script>
-</body>
+
+    <script src="/static/rankingAluno/scripts.js"></script>
+  </body>
 </html>

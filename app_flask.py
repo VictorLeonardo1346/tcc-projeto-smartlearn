@@ -1,47 +1,58 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for, flash
+from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_cors import CORS
 from backend.bancodedados import Database
 from backend.respostas_db import RespostasDB
 import os
 import sqlite3
+from flask_session import Session  # ✅ Correto
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = "chave_super_secreta"
 
+# ✅ Configuração correta da sessão
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_FILE_DIR"] = os.path.join(os.getcwd(), "flask_sessions")
+os.makedirs(app.config["SESSION_FILE_DIR"], exist_ok=True)
+
+Session(app)
+
 # =============================
 # Inicialização dos bancos
 # =============================
-db = Database(db_name="banco.db")  # questionários e questões
-res_db = RespostasDB(db_name="respostas_enviadas_aluno.db")  # respostas individuais e utilitários
-db_cadastros = Database(db_name="Sistema_cadastros.db")  # usuários (alunos)
+db = Database(db_name="banco.db")
+res_db = RespostasDB(db_name="respostas_enviadas_aluno.db")
+db_cadastros = Database(db_name="Sistema_cadastros.db")
 
 # =============================
-# ROTA: servir arquivos da pasta criacaoQuestionario (HTML/CSS/JS)
+# ROTA: servir arquivos da pasta criacaoQuestionario
 # =============================
-# Essa rota permite que seus arquivos dentro da pasta /criacaoQuestionario sejam servidos diretamente.
 @app.route("/criacaoQuestionario/<path:filename>")
 def criacao_questionario_files(filename):
     raiz = os.path.join(os.getcwd(), "criacaoQuestionario")
     return send_from_directory(raiz, filename)
 
 # =============================
-# ROTA: página do professor para criar questionário (usa arquivo na pasta raiz/criacaoQuestionario)
+# ROTA: página do professor para criar questionário
 # =============================
 @app.route("/professor/criar_questionario", methods=["GET"])
 def criar_questionario():
-    # devolve o arquivo quiz_form.html diretamente da pasta criacaoQuestionario
     raiz = os.path.join(os.getcwd(), "criacaoQuestionario")
     return send_from_directory(raiz, "quiz_form.html")
 
 # =============================
-# LOGIN
+# LOGIN (agora com suporte a force_login)
 # =============================
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # 🔹 Se a URL tiver ?force_login=true, apaga a sessão antiga
+    if request.args.get("force_login") == "true":
+        session.clear()
+
     if request.method == "GET":
         return render_template("login.html")
-    
+
     nome = request.form.get("nome")
     senha = request.form.get("senha")
 
@@ -66,7 +77,7 @@ def logout():
     return redirect(url_for("login"))
 
 # =============================
-# SALVAR QUESTIONÁRIO (PROFESSOR) - API (recebe JSON do quiz_form.js)
+# SALVAR QUESTIONÁRIO (PROFESSOR)
 # =============================
 @app.route("/salvar_questionario", methods=["POST"])
 def salvar_questionario():
@@ -85,8 +96,7 @@ def salvar_questionario():
         for q in questoes:
             enunciado = q.get("pergunta", "")
             alternativas = q.get("alternativas", [])
-            correta = q.get("correta", "")  # conforme seu script.js: valor tipo "1"/"2"/"3"/"4"
-            # garante 4 alternativas (se faltar, deixa string vazia)
+            correta = q.get("correta", "")
             db.adicionar_questao(
                 questionario_id,
                 enunciado,
@@ -103,7 +113,7 @@ def salvar_questionario():
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # =============================
-# API: listar questionários (usado pela lista do aluno)
+# API: listar questionários
 # =============================
 @app.route("/api/questionarios", methods=["GET"])
 def api_questionarios():
@@ -127,7 +137,7 @@ def buscar_questoes(questionario_id):
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 # =============================
-# API: salvar respostas do aluno (usa session para pegar aluno_id)
+# API: salvar respostas do aluno
 # =============================
 @app.route("/api/salvar_respostas", methods=["POST"])
 def salvar_respostas():
@@ -149,7 +159,6 @@ def salvar_respostas():
     if not gabarito_rows:
         return jsonify({"status": "erro", "mensagem": "Questionário sem questões ou inexistente"}), 400
 
-    # monta gabarito id -> correta
     gabarito = {r[0]: r[6] for r in gabarito_rows}
     total_questoes = len(gabarito)
     pontos_por_questao = 100.0 / total_questoes if total_questoes > 0 else 0.0
@@ -163,7 +172,7 @@ def salvar_respostas():
             qid = int(item.get("questao_id", 0))
         except Exception:
             continue
-        resp = str(item.get("resposta", ""))  # lembrando: seu quiz_form grava "1"/"2"/"3"/"4"
+        resp = str(item.get("resposta", ""))
         correta = gabarito.get(qid)
         acertou = (correta is not None and resp == str(correta))
         pontos = pontos_por_questao if acertou else 0.0
@@ -172,14 +181,12 @@ def salvar_respostas():
         total_pontos += pontos
         respostas_para_salvar.append({"questao_id": qid, "resposta": resp, "correta": correta, "pontos": round(pontos, 2)})
 
-    # salva respostas via RespostasDB
     try:
         res_db.salvar_respostas_em_lote(aluno_id, questionario_id, respostas_para_salvar)
     except Exception:
-        # não interrompe se falhar aqui (só logamos)
         pass
 
-    # atualiza tabela Ranking
+    # --- Atualiza tabela Ranking ---
     try:
         con = sqlite3.connect("respostas_enviadas_aluno.db")
         cur = con.cursor()
@@ -189,14 +196,29 @@ def salvar_respostas():
             QuestionarioId INTEGER,
             Pontos REAL
         )""")
-        cur.execute("INSERT INTO Ranking (AlunoId, QuestionarioId, Pontos) VALUES (?, ?, ?)",
-                    (aluno_id, questionario_id, round(total_pontos, 2)))
+
+        cur.execute(
+            "SELECT id FROM Ranking WHERE AlunoId = ? AND QuestionarioId = ?",
+            (aluno_id, questionario_id)
+        )
+        existente = cur.fetchone()
+
+        if existente:
+            cur.execute(
+                "UPDATE Ranking SET Pontos = ? WHERE id = ?",
+                (round(total_pontos, 2), existente[0])
+            )
+        else:
+            cur.execute(
+                "INSERT INTO Ranking (AlunoId, QuestionarioId, Pontos) VALUES (?, ?, ?)",
+                (aluno_id, questionario_id, round(total_pontos, 2))
+            )
+
         con.commit()
         con.close()
-    except Exception:
-        pass
+    except Exception as e:
+        print("Erro ao atualizar ranking:", e)
 
-    # grava resultado na sessão para mostrar na tela /aluno/resultado
     session["ultimo_questionario_id"] = questionario_id
     session["ultimo_pontos"] = round(total_pontos, 2)
     session["ultimo_acertos"] = acertos
@@ -204,18 +226,28 @@ def salvar_respostas():
     session["ultimo_total"] = total_questoes
     session["ultimo_taxa"] = round((acertos / total_questoes) * 100, 2) if total_questoes > 0 else 0
 
-    return jsonify({"status": "sucesso", "mensagem": "Respostas salvas com sucesso!", "pontos_totais": round(total_pontos,2), "acertos": acertos, "erros": total_questoes - acertos, "total": total_questoes, "taxa": session["ultimo_taxa"]})
+    return jsonify({
+        "status": "sucesso",
+        "mensagem": "Respostas salvas com sucesso!",
+        "pontos_totais": round(total_pontos, 2),
+        "acertos": acertos,
+        "erros": total_questoes - acertos,
+        "total": total_questoes,
+        "taxa": session["ultimo_taxa"]
+    })
 
 # =============================
-# TELA ALUNO - HOME
+# TELA ALUNO - HOME (corrigida)
 # =============================
 @app.route("/aluno")
 def aluno_home():
-    aluno_nome = session.get("aluno_nome")
     aluno_id = session.get("aluno_id")
-    if not aluno_id:
-        return redirect(url_for("login"))
 
+    # 🔹 Se não houver sessão, força o login
+    if not aluno_id:
+        return redirect(url_for("login", force_login="true"))
+
+    aluno_nome = session.get("aluno_nome")
     questionarios = db.listar_questionarios()
     return render_template("aluno_listar.html", questionarios=questionarios, aluno_nome=aluno_nome)
 
@@ -226,33 +258,25 @@ def aluno_home():
 def aluno_responder(questionario_id):
     aluno_id = session.get("aluno_id")
     if not aluno_id:
-        return redirect(url_for("login"))
+        return redirect(url_for("login", force_login="true"))
     return render_template("aluno_responder.html", id=questionario_id, aluno_id=aluno_id)
 
 # =============================
-# TELA RESULTADO (lê dados da sessão)
+# TELA RESULTADO
 # =============================
 @app.route("/aluno/resultado")
 def aluno_resultado():
     aluno_id = session.get("aluno_id")
     if not aluno_id:
-        return redirect(url_for("login"))
-
-    questionario_id = session.get("ultimo_questionario_id")
-    total_pontos = session.get("ultimo_pontos", 0)
-    acertos = session.get("ultimo_acertos", 0)
-    erros = session.get("ultimo_erros", 0)
-    total_questoes = session.get("ultimo_total", 0)
-    taxa = session.get("ultimo_taxa", 0)
-
+        return redirect(url_for("login", force_login="true"))
     return render_template(
         "aluno_resultado.html",
-        questionario_id=questionario_id,
-        pontos=total_pontos,
-        acertos=acertos,
-        erros=erros,
-        total=total_questoes,
-        taxa=taxa,
+        questionario_id=session.get("ultimo_questionario_id"),
+        pontos=session.get("ultimo_pontos", 0),
+        acertos=session.get("ultimo_acertos", 0),
+        erros=session.get("ultimo_erros", 0),
+        total=session.get("ultimo_total", 0),
+        taxa=session.get("ultimo_taxa", 0),
         aluno_nome=session.get("aluno_nome")
     )
 
@@ -262,74 +286,68 @@ def aluno_resultado():
 @app.route("/aluno/ranking")
 def aluno_ranking():
     aluno_id = session.get("aluno_id")
-    aluno_nome = session.get("aluno_nome")
-    questionario_id = session.get("questionario_id")
-    pontos = session.get("pontos", 0)
-
     if not aluno_id:
-        return redirect(url_for("login"))
+        return redirect(url_for("login", force_login="true"))
 
-    con = sqlite3.connect("respostas_enviadas_aluno.db")
-    cur = con.cursor()
+    ultimo_questionario_id = session.get("ultimo_questionario_id")
 
-    # Cria tabela se não existir
-    cur.execute("""
+    con_respostas = sqlite3.connect("respostas_enviadas_aluno.db")
+    cur_respostas = con_respostas.cursor()
+    con_cadastros = sqlite3.connect("Sistema_cadastros.db")
+    cur_cadastros = con_cadastros.cursor()
+
+    cur_respostas.execute("""
         CREATE TABLE IF NOT EXISTS Ranking (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             AlunoId INTEGER,
-            AlunoNome TEXT,
             QuestionarioId INTEGER,
             Pontos REAL
         )
     """)
+    con_respostas.commit()
 
-    # 🔄 Atualiza/insere pontuação do aluno atual na atividade
-    cur.execute("""
-        INSERT INTO Ranking (AlunoId, AlunoNome, QuestionarioId, Pontos)
-        VALUES (?, ?, ?, ?)
-    """, (aluno_id, aluno_nome, questionario_id, pontos))
-    con.commit()
+    cur_respostas.execute("SELECT AlunoId, QuestionarioId, Pontos FROM Ranking")
+    resultados = cur_respostas.fetchall()
 
-    # 📊 Ranking da atividade atual
-    cur.execute("""
-        SELECT AlunoNome, Pontos
-        FROM Ranking
-        WHERE QuestionarioId = ?
-        ORDER BY Pontos DESC
-    """, (questionario_id,))
-    ranking_atividade = cur.fetchall()
+    alunos_nomes = {}
+    for (AlunoId, _, _) in resultados:
+        if AlunoId not in alunos_nomes:
+            cur_cadastros.execute("SELECT Username FROM usuarios WHERE Id = ?", (AlunoId,))
+            aluno = cur_cadastros.fetchone()
+            alunos_nomes[AlunoId] = aluno[0] if aluno else f"Aluno {AlunoId}"
 
-    # 📈 Ranking geral (todas as atividades)
-    cur.execute("""
-        SELECT AlunoNome, SUM(Pontos) as total
-        FROM Ranking
-        GROUP BY AlunoNome
-        ORDER BY total DESC
-    """)
-    ranking_todas = cur.fetchall()
-    con.close()
+    ranking_atividade = []
+    if ultimo_questionario_id:
+        ranking_atividade = [
+            {"AlunoId": r[0], "nome": alunos_nomes.get(r[0], f"Aluno {r[0]}"), "pontos": round(r[2], 2)}
+            for r in resultados if r[1] == ultimo_questionario_id
+        ]
+        ranking_atividade.sort(key=lambda x: x["pontos"], reverse=True)
 
-    # Transforma em lista de dicionários para o Jinja
-    ranking_atividade_lista = [
-        {"posicao": i + 1, "nome": nome, "pontos": round(pontos, 2)}
-        for i, (nome, pontos) in enumerate(ranking_atividade)
+    soma_pontos = {}
+    for (AlunoId, _, pontos) in resultados:
+        soma_pontos[AlunoId] = soma_pontos.get(AlunoId, 0) + pontos
+
+    ranking_geral = [
+        {"AlunoId": aid, "nome": alunos_nomes.get(aid, f"Aluno {aid}"), "pontos": round(pts, 2)}
+        for aid, pts in soma_pontos.items()
     ]
-    ranking_todas_lista = [
-        {"posicao": i + 1, "nome": nome, "pontos": round(pontos, 2)}
-        for i, (nome, pontos) in enumerate(ranking_todas)
-    ]
+    ranking_geral.sort(key=lambda x: x["pontos"], reverse=True)
+
+    con_respostas.close()
+    con_cadastros.close()
 
     return render_template(
         "rankingAluno/ranking.html",
-        user_name=aluno_nome,
-        score=pontos,
-        qid=questionario_id,
-        ranking_atividade=ranking_atividade_lista,
-        ranking_todas=ranking_todas_lista
+        ranking_atividade=ranking_atividade,
+        ranking_geral=ranking_geral,
+        user_name=session.get("aluno_nome"),
+        user_score=soma_pontos.get(aluno_id, 0),
+        qid=ultimo_questionario_id
     )
 
 # =============================
-# ROTAS AUXILIARES PARA SERVIR ARQUIVOS ESTÁTICOS (mantidas caso use /static)
+# ARQUIVOS ESTÁTICOS
 # =============================
 @app.route("/static/<path:filename>")
 def static_files(filename):
@@ -340,7 +358,7 @@ def static_files(filename):
 # =============================
 @app.route("/")
 def home():
-    return redirect(url_for("login"))
+    return redirect(url_for("login", force_login="true"))
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
