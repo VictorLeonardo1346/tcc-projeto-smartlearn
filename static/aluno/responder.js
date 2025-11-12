@@ -21,6 +21,15 @@ window.addEventListener("DOMContentLoaded", () => {
         enunciado.innerHTML = `<b>${i + 1}. ${q.enunciado}</b>`;
         div.appendChild(enunciado);
 
+        // ✅ Se a questão tiver imagem, exibe
+        if (q.imagem) {
+          const img = document.createElement("img");
+          img.src = q.imagem;
+          img.alt = "Imagem da questão";
+          img.className = "imagem-questao";
+          div.appendChild(img);
+        }
+
         const optionsDiv = document.createElement("div");
         optionsDiv.className = "options";
 
@@ -33,7 +42,9 @@ window.addEventListener("DOMContentLoaded", () => {
           radio.name = `q${q.id}`;
           radio.value = valor;
           label.appendChild(radio);
-          label.append(` ${String.fromCharCode(65 + idx)}) ${alternativas[idx] ?? ""}`);
+          label.append(
+            ` ${String.fromCharCode(65 + idx)}) ${alternativas[idx] ?? ""}`
+          );
           optionsDiv.appendChild(label);
         });
 
@@ -47,7 +58,9 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   async function enviarRespostas() {
-    const radiosChecked = document.querySelectorAll("input[type=radio]:checked");
+    const radiosChecked = document.querySelectorAll(
+      "input[type=radio]:checked"
+    );
     const respostasUsuario = {};
     radiosChecked.forEach((r) => {
       const qid = Number(r.name.replace("q", ""));
@@ -74,7 +87,7 @@ window.addEventListener("DOMContentLoaded", () => {
         throw new Error(dados.mensagem || "Erro desconhecido do servidor");
       }
 
-      // ✅ Agora redireciona direto para a rota que lê da sessão
+      // ✅ Redireciona para o resultado após enviar as respostas
       window.location.href = "/aluno/resultado";
     } catch (err) {
       console.error(err);

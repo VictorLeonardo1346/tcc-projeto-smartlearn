@@ -16,6 +16,7 @@ function addQuestion() {
   const inputPergunta = document.createElement("input");
   inputPergunta.type = "text";
   inputPergunta.placeholder = "Digite o enunciado da questão";
+  inputPergunta.classList.add("pergunta");
   div.appendChild(inputPergunta);
 
   const diffDiv = document.createElement("div");
@@ -36,6 +37,7 @@ function addQuestion() {
   const inputImg = document.createElement("input");
   inputImg.type = "file";
   inputImg.accept = "image/*";
+  inputImg.classList.add("imagem");
   inputImg.onchange = function (event) {
     const imgPreview = div.querySelector("img");
     imgPreview.src = URL.createObjectURL(event.target.files[0]);
@@ -57,7 +59,6 @@ function addQuestion() {
     const radio = document.createElement("input");
     radio.type = "radio";
     radio.name = "correct-" + questionCount;
-    // valor usado como "correta" — string "1","2","3","4"
     radio.value = String(i + 1);
 
     const altInput = document.createElement("input");
@@ -77,10 +78,11 @@ function addQuestion() {
 
 function setDificuldadeQuestao(botao, nivel) {
   const parent = botao.closest(".dificuldade-questao");
-  parent.querySelectorAll(".btn-diff").forEach((b) => b.classList.remove("ativo"));
+  parent
+    .querySelectorAll(".btn-diff")
+    .forEach((b) => b.classList.remove("ativo"));
   botao.classList.add("ativo");
   parent.querySelector(".nivel").textContent = nivel;
-  // define dificuldade global (se quiser dificuldade por questão, é preciso salvar por questão)
   dificuldadeSelecionada = nivel;
 }
 
@@ -105,60 +107,83 @@ function deletarAtividade() {
   }
 }
 
-document.getElementById("quizForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+document
+  .getElementById("quizForm")
+  .addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  if (!dificuldadeSelecionada) {
-    if (!confirm("Você não escolheu uma dificuldade global. Continuar mesmo assim?")) return;
-  }
+    if (!dificuldadeSelecionada) {
+      if (
+        !confirm(
+          "Você não escolheu uma dificuldade para a questão. Continuar mesmo assim?"
+        )
+      )
+        return;
+    }
 
-  const materia = document.getElementById("materia").value;
-  const titulo = document.getElementById("titulo").value;
-  const dataEntrega = document.getElementById("dataEntrega").value;
+    const materia = document.getElementById("materia").value;
+    const titulo = document.getElementById("titulo").value;
+    const dataEntrega = document.getElementById("dataEntrega").value;
 
-  if (!materia || !titulo || !dataEntrega) {
-    alert("Por favor, preencha todos os campos obrigatórios.");
-    return;
-  }
+    if (!materia || !titulo || !dataEntrega) {
+      alert("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
 
-  const questoes = [];
-  const questions = document.querySelectorAll(".question");
+    const formData = new FormData();
+    formData.append("materia", materia);
+    formData.append("titulo", titulo);
+    formData.append("dificuldade", dificuldadeSelecionada || "");
+    formData.append("dataEntrega", dataEntrega);
 
-  questions.forEach((q) => {
-    const pergunta = (q.querySelector("input[type='text']") || { value: "" }).value;
-    const alternativasInputs = q.querySelectorAll(".options input[type='text']");
-    const radios = q.querySelectorAll("input[type='radio']");
-    let correta = null;
-    radios.forEach((r) => { if (r.checked) correta = r.value; });
+    const questions = document.querySelectorAll(".question");
 
-    const alternativas = [
-      alternativasInputs[0]?.value || "",
-      alternativasInputs[1]?.value || "",
-      alternativasInputs[2]?.value || "",
-      alternativasInputs[3]?.value || "",
-    ];
+    questions.forEach((q, index) => {
+      const pergunta = q.querySelector(".pergunta")?.value || "";
+      const alternativasInputs = q.querySelectorAll(
+        ".options input[type='text']"
+      );
+      const radios = q.querySelectorAll("input[type='radio']");
+      let correta = null;
+      radios.forEach((r) => {
+        if (r.checked) correta = r.value;
+      });
 
-    questoes.push({ pergunta, alternativas, correta });
-  });
+      const alternativas = [
+        alternativasInputs[0]?.value || "",
+        alternativasInputs[1]?.value || "",
+        alternativasInputs[2]?.value || "",
+        alternativasInputs[3]?.value || "",
+      ];
 
-  const atividade = { materia, titulo, dificuldade: dificuldadeSelecionada || "", dataEntrega, questoes };
+      formData.append(`pergunta_${index}`, pergunta);
+      formData.append(`alt1_${index}`, alternativas[0]);
+      formData.append(`alt2_${index}`, alternativas[1]);
+      formData.append(`alt3_${index}`, alternativas[2]);
+      formData.append(`alt4_${index}`, alternativas[3]);
+      formData.append(`correta_${index}`, correta);
 
-  try {
-    const resp = await fetch("/salvar_questionario", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(atividade),
+      const imgInput = q.querySelector(".imagem");
+      if (imgInput && imgInput.files.length > 0) {
+        formData.append(`imagem_${index}`, imgInput.files[0]);
+      }
     });
 
-    const data = await resp.json();
-    if (data.status === "sucesso") {
-      alert(data.mensagem + " (ID: " + data.id + ")");
-      location.reload();
-    } else {
-      alert("Erro: " + data.mensagem);
+    try {
+      const resp = await fetch("/salvar_questionario", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await resp.json();
+      if (data.status === "sucesso") {
+        alert(data.mensagem + " (ID: " + data.id + ")");
+        location.reload();
+      } else {
+        alert("Erro: " + data.mensagem);
+      }
+    } catch (err) {
+      console.error("Erro ao salvar:", err);
+      alert("Erro ao salvar a atividade!");
     }
-  } catch (err) {
-    console.error("Erro ao salvar:", err);
-    alert("Erro ao salvar a atividade!");
-  }
-});
+  });

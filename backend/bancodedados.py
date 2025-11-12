@@ -43,6 +43,7 @@ class Database:
                 AlternativaC TEXT,
                 AlternativaD TEXT,
                 Correta TEXT,
+                ImagemPath TEXT,
                 FOREIGN KEY (QuestionarioId) REFERENCES Questionarios(Id)
             );
         """)
@@ -76,12 +77,12 @@ class Database:
         self.conn.commit()
         return self.cursor.lastrowid
 
-    def adicionar_questao(self, questionario_id, enunciado, alternativas, correta):
+    def adicionar_questao(self, questionario_id, enunciado, alternativas, correta, Imagem=None):
         # alternativas deve ser uma lista de 4 elementos [a, b, c, d]
         self.cursor.execute("""
             INSERT INTO Questoes (
-                QuestionarioId, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                QuestionarioId, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta, ImagemPath
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             questionario_id,
             enunciado,
@@ -89,7 +90,8 @@ class Database:
             alternativas[1] if len(alternativas) > 1 else None,
             alternativas[2] if len(alternativas) > 2 else None,
             alternativas[3] if len(alternativas) > 3 else None,
-            correta
+            correta,
+            Imagem
         ))
         self.conn.commit()
 
@@ -99,7 +101,7 @@ class Database:
 
     def buscar_questoes(self, questionario_id):
         self.cursor.execute("""
-            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta
+            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta, ImagemPath
             FROM Questoes WHERE QuestionarioId = ?
         """, (questionario_id,))
         return self.cursor.fetchall()

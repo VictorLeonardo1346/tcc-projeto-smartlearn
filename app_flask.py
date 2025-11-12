@@ -81,36 +81,76 @@ def logout():
 # =============================
 @app.route("/salvar_questionario", methods=["POST"])
 def salvar_questionario():
-    dados = request.get_json()
-    if not dados:
-        return jsonify({"status": "erro", "mensagem": "JSON inválido"}), 400
-
-    materia = dados.get("materia", "")
-    titulo = dados.get("titulo", "")
-    dificuldade = dados.get("dificuldade", "")
-    data_entrega = dados.get("dataEntrega", "")
-    questoes = dados.get("questoes", [])
-
     try:
+        materia = request.form.get("materia", "")
+        titulo = request.form.get("titulo", "")
+        dificuldade = request.form.get("dificuldade", "")
+        data_entrega = request.form.get("dataEntrega", "")
+
+        questoes = []
+        index = 0
+        while True:
+            pergunta = request.form.get(f"pergunta_{index}")
+            if not pergunta:
+                break
+
+            alternativas = [
+                request.form.get(f"alt1_{index}", ""),
+                request.form.get(f"alt2_{index}", ""),
+                request.form.get(f"alt3_{index}", ""),
+                request.form.get(f"alt4_{index}", ""),
+            ]
+            correta = request.form.get(f"correta_{index}", "")
+
+            questoes.append({
+                "pergunta": pergunta,
+                "alternativas": alternativas,
+                "correta": correta,
+                "index": index
+            })
+            index += 1
+
+        # 📂 Cria a pasta de uploads (se não existir)
+        UPLOAD_FOLDER = os.path.join("static", "uploads")
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+        # 💾 Salva o questionário no banco
         questionario_id = db.criar_questionario(materia, titulo, dificuldade, data_entrega)
+
+        # 💾 Salva cada questão e sua imagem (se enviada)
         for q in questoes:
-            enunciado = q.get("pergunta", "")
-            alternativas = q.get("alternativas", [])
-            correta = q.get("correta", "")
+            imagem_file = request.files.get(f"imagem_{q['index']}")
+            imagem_path = None
+
+            if imagem_file and imagem_file.filename:
+                nome_arquivo = f"q{questionario_id}_{q['index']}_{imagem_file.filename}"
+                caminho_completo = os.path.join(UPLOAD_FOLDER, nome_arquivo)
+                caminho_completo = caminho_completo.replace("\\", "/")  # 🔹 Aqui está o trecho do Windows
+
+                imagem_file.save(caminho_completo)
+
+                # Caminho acessível via URL (Flask serve via /uploads)
+                imagem_path = f"/uploads/{nome_arquivo}"
+
             db.adicionar_questao(
                 questionario_id,
-                enunciado,
-                [
-                    alternativas[0] if len(alternativas) > 0 else "",
-                    alternativas[1] if len(alternativas) > 1 else "",
-                    alternativas[2] if len(alternativas) > 2 else "",
-                    alternativas[3] if len(alternativas) > 3 else ""
-                ],
-                correta
+                q["pergunta"],
+                q["alternativas"],
+                q["correta"],
+                imagem_path
             )
-        return jsonify({"status": "sucesso", "mensagem": "Questionário salvo com sucesso!", "id": questionario_id})
+
+        return jsonify({
+            "status": "sucesso",
+            "mensagem": "Questionário salvo com sucesso!",
+            "id": questionario_id
+        })
+
     except Exception as e:
+        print("Erro ao salvar questionário:", e)
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
+
 
 # =============================
 # API: listar questionários
@@ -131,7 +171,7 @@ def api_questionarios():
 def buscar_questoes(questionario_id):
     try:
         rows = db.buscar_questoes(questionario_id)
-        questoes = [{"id": r[0], "enunciado": r[1], "alternativas": [r[2], r[3], r[4], r[5]], "correta": r[6]} for r in rows]
+        questoes = [{"id": r[0], "enunciado": r[1], "alternativas": [r[2], r[3], r[4], r[5]], "correta": r[6], "imagem": r[7] if r[7] else None} for r in rows]
         return jsonify(questoes)
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
@@ -352,6 +392,11 @@ def aluno_ranking():
 @app.route("/static/<path:filename>")
 def static_files(filename):
     return send_from_directory("static", filename)
+
+@app.route("/uploads/<path:filename>")
+def uploads(filename):
+     return send_from_directory(os.path.join("static", "uploads"), filename)
+    
 
 # =============================
 # HOME
