@@ -6,6 +6,7 @@ body {
   align-items: center; /* centraliza na vertical */
   height: 100vh; /* ocupa 100% da altura da janela */
   margin: 0;
+  overflow-y: auto;
 }
 
 .container {
@@ -15,6 +16,9 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
   width: 700px;
   max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 header {
