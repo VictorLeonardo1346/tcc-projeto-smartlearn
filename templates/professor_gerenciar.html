@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciar Questionários</title>
+    <style>
+      /* Fundo geral */
+      body {
+        background-color: #8b0000;
+        font-family: "Noto Sans", sans-serif;
+        margin: 0;
+        padding: 0;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      /* Container principal */
+      .container {
+        background-color: #1e1e1e;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+        width: 80%;
+        max-width: 1000px;
+        text-align: center;
+        overflow-y: auto;
+        max-height: 90vh;
+      }
+
+      /* Título e subtítulo */
+      .container h1 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .container p {
+        color: #ccc;
+        font-size: 1rem;
+        margin-bottom: 30px;
+      }
+
+      /* Cards */
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .card {
+        background-color: #0f0f0f;
+        border-radius: 12px;
+        padding: 18px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        transition: all 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+      }
+
+      /* Informações do card */
+      .info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 4px;
+      }
+
+      .info h2 {
+        font-size: 1.2rem;
+        margin: 0;
+        color: #fff;
+      }
+
+      .info span {
+        font-size: 0.95rem;
+        color: #ccc;
+      }
+
+      .info b {
+        color: #fff;
+      }
+
+      /* Botões */
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      button {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+      }
+
+      .btn-visualizar {
+        background-color: #007bff;
+      }
+
+      .btn-visualizar:hover {
+        background-color: #0062cc;
+      }
+
+      .btn-excluir {
+        background-color: #d9534f;
+      }
+
+      .btn-excluir:hover {
+        background-color: #c9302c;
+      }
+
+      /* Scroll estilizado */
+      .container::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .container::-webkit-scrollbar-thumb {
+        background-color: #444;
+        border-radius: 8px;
+      }
+
+      .container::-webkit-scrollbar-thumb:hover {
+        background-color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📚 Gerenciar Questionários</h1>
+      <p>Clique em uma atividade para visualizar ou excluí-la.</p>
+      <div id="questionariosContainer" class="cards"></div>
+    </div>
+
+    <script src="/static/professor/gerenciar.js"></script>
+  </body>
+</html>

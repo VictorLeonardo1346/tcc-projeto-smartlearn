@@ -33,25 +33,34 @@
 
       <form id="quizForm">
         <label for="titulo">Título</label>
-        <input type="text" id="titulo" placeholder="Digite o título da atividade" />
+        <input
+          type="text"
+          id="titulo"
+          placeholder="Digite o título da atividade"
+        />
 
         <div id="questionsContainer"></div>
 
         <div class="actions-questions">
-          <button type="button" class="btn-add" onclick="addQuestion()">➕ Adicionar questão</button>
-          <button type="button" class="btn-remove" onclick="removeQuestion()">➖ Remover questão</button>
+          <button type="button" class="btn-add" onclick="addQuestion()">
+            ➕ Adicionar questão
+          </button>
+          <button type="button" class="btn-remove" onclick="removeQuestion()">
+            ➖ Remover questão
+          </button>
         </div>
 
         <label for="dataEntrega">Data de entrega da atividade</label>
         <input type="date" id="dataEntrega" />
 
         <div class="footer-buttons">
-          <button type="button" class="btn-delete" onclick="deletarAtividade()">Deletar</button>
+          <button type="button" class="btn-delete" onclick="deletarAtividade()">
+            Deletar
+          </button>
           <button type="submit" class="btn-create">Criar</button>
         </div>
       </form>
     </div>
-
     <script src="/criacaoQuestionario/script.js"></script>
   </body>
 </html>
