@@ -217,10 +217,14 @@ class ProfessorPage:
 
         # Botão gerenciar questionários (opcional)
         ctk.CTkButton(
-            self.app,
+             self.app,
             text="GERENCIAR QUESTIONÁRIOS",
-            font=("Century Gothic", 16)
+            font=("Century Gothic", 16),
+            fg_color="#007ACC",
+            hover_color="#005F99",
+            command=self.abrir_gerenciar_questionarios
         ).place(relx=0.5, rely=0.52, anchor=CENTER)
+
 
         # Botão sair
         ctk.CTkButton(
@@ -235,3 +239,9 @@ class ProfessorPage:
     def abrir_criacao_questionario(self):
         url = f"{BASE_URL}/professor/criar_questionario"
         webbrowser.open_new_tab(url)
+
+    def abrir_gerenciar_questionarios(self):
+        url = f"{BASE_URL}/professor/gerenciar"
+        webbrowser.open_new_tab(url)
+   
+

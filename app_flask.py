@@ -6,6 +6,7 @@ import os
 import sqlite3
 from flask_session import Session  # ✅ Correto
 
+
 app = Flask(__name__)
 CORS(app)
 app.secret_key = "chave_super_secreta"
@@ -75,6 +76,35 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
+# -------------------------------
+# 📘 Rotas do Professor
+# -------------------------------
+@app.route("/professor/gerenciar")
+def gerenciar_questionarios():
+    # Agora abre diretamente a página do professor sem exigir login
+    return render_template("professor_gerenciar.html")
+
+
+@app.route("/visualizar_questionario/<int:questionario_id>")
+def visualizar_questionario(questionario_id):
+    # Também remove a checagem de login
+    return render_template("professor_visualizar.html", questionario_id=questionario_id)
+
+# -------------------------------
+# 🗑️ API - Excluir Questionário
+# -------------------------------
+@app.route("/api/excluir_questionario/<int:id>", methods=["DELETE"])
+def excluir_questionario(id):
+    try:
+        db.cursor.execute("DELETE FROM Questoes WHERE QuestionarioId = ?", (id,))
+        db.cursor.execute("DELETE FROM Questionarios WHERE Id = ?", (id,))
+        db.conn.commit()
+        return jsonify({"status": "sucesso", "mensagem": "Questionário excluído com sucesso!"})
+    except Exception as e:
+        print("Erro ao excluir questionário:", e)
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 
 # =============================
 # SALVAR QUESTIONÁRIO (PROFESSOR)

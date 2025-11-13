@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visualizar Questionário</title>
+  </head>
+  <body>
+    <style>
+      body {
+        background-color: #980909;
+        color: #fff;
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 40px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 900px;
+        width: 100%;
+        background-color: #0f0f0f;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        color: #fff;
+      }
+
+      .question {
+        background-color: #333;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      }
+
+      .question p {
+        margin: 8px 0;
+      }
+
+      .imagem-questao {
+        display: block;
+        margin: 15px auto;
+        max-width: 80%;
+        border-radius: 10px;
+        border: 2px solid #555;
+      }
+
+      .btn-voltar {
+        display: block;
+        margin: 40px auto 0;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .btn-voltar:hover {
+        background-color: #0056b3;
+      }
+    </style>
+    <div class="container">
+      <h1>📖 Visualizar Questionário</h1>
+      <div id="questionsContainer"></div>
+
+      <button class="btn-voltar" onclick="window.history.back()">Voltar</button>
+    </div>
+
+    <script>
+      // pega o ID da URL (ex: /visualizar_questionario/3)
+      const questionarioId = window.location.pathname.split("/").pop();
+    </script>
+    <script src="/static/professor/visualizar.js"></script>
+  </body>
+</html>
