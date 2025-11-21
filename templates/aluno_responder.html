@@ -3,94 +3,165 @@
   <head>
     <meta charset="UTF-8" />
     <title>Responder Questionário</title>
+
     <style>
       body {
         font-family: "Segoe UI", sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #980909; /* fundo vermelho escuro */
+        background-color: #980909;
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
       }
 
-      /* Painel central */
       .painel {
-        background-color: #d9d9d9; /* cinza claro */
+        background-color: #111;
         width: 80%;
-        max-width: 700px;
+        max-width: 800px;
         padding: 40px 50px;
         border-radius: 12px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        border: 3px solid #fff;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
         text-align: center;
+        color: white;
       }
 
-      /* Título */
-      .painel h1 {
-        color: #000;
+      h1 {
+        margin-bottom: 20px;
         font-size: 28px;
-        margin-bottom: 40px;
       }
 
-      /* Questões */
-      .question {
-        background-color: #fff;
-        padding: 15px;
-        margin: 15px 0;
-        border-radius: 5px;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-        text-align: left;
+      /* === TEXTO DA PROGRESSÃO === */
+      .progresso-texto {
+        font-size: 16px;
+        margin-bottom: 8px;
+        color: #fff;
+      }
+
+      /* === BARRA DE PROGRESSO === */
+      .progress-bar {
+        width: 100%;
+        height: 12px;
+        background-color: #333;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 25px;
+      }
+
+      #progressFill {
+        height: 100%;
+        width: 0%;
+        background-color: #1a5cff;
+        transition: width 0.4s ease-in-out;
+      }
+
+      /* ESTILO DA PERGUNTA */
+      .pergunta-texto {
+        font-size: 20px;
+        margin-bottom: 20px;
+        font-weight: bold;
       }
 
       .imagem-questao {
-        display: block;
+        max-width: 90%;
         margin: 15px auto;
-        max-width: 80%;
+        display: block;
         border-radius: 10px;
-        border: 2px solid #555;
+        border: 2px solid #666;
       }
 
-      /* Alternativas */
-      .options label {
-        display: block;
-        margin: 5px 0;
+      /* ALTERNATIVAS EM BOTÕES */
+      .opcoes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .alternativa-btn {
+        padding: 12px;
+        background-color: #222;
+        border: 2px solid #444;
+        border-radius: 8px;
+        color: white;
         cursor: pointer;
+        font-size: 16px;
+        transition: 0.2s;
       }
 
-      /* Botão principal */
+      .alternativa-btn:hover {
+        transform: scale(1.03);
+        background-color: #333;
+      }
+
+      /* CORES APÓS RESPONDER */
+      .correto {
+        background-color: #00b050 !important;
+        border-color: #009645 !important;
+      }
+
+      .errado {
+        background-color: #c00000 !important;
+        border-color: #900000 !important;
+      }
+
+      /* BOTÃO PRÓXIMA */
+      #proximaPerguntaBtn {
+        margin-top: 25px;
+        padding: 12px 30px;
+        background-color: #1a5cff;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        display: none;
+        transition: 0.2s;
+      }
+
+      #proximaPerguntaBtn:hover {
+        background-color: #003eb8;
+        transform: scale(1.05);
+      }
+
+      /* BOTÃO ENVIAR RESPOSTAS */
       #submitBtn {
-        display: block;
-        margin: 30px auto 0;
+        margin-top: 30px;
         padding: 12px 35px;
         font-size: 16px;
-        background-color: #008000; /* verde SmartLearn */
+        background-color: #008000;
         color: white;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: all 0.2s ease-in-out;
-      }
-
-      #submitBtn:hover {
-        background-color: #006400; /* verde escuro */
-        transform: scale(1.05);
+        display: none;
       }
     </style>
   </head>
+
   <body>
     <div class="painel">
       <h1>Responder Questionário</h1>
 
-      <div id="questionsContainer">
-        <!-- Suas questões serão carregadas aqui -->
+      <!-- TEXTO DE PROGRESSO -->
+      <div id="progressInfo" class="progresso-texto"></div>
+
+      <!-- BARRA DE PROGRESSO -->
+      <div class="progress-bar">
+        <div id="progressFill"></div>
       </div>
+
+      <!-- ÁREA DA PERGUNTA -->
+      <div id="questionArea"></div>
+
+      <button id="proximaPerguntaBtn">Próxima Pergunta</button>
 
       <button id="submitBtn">Enviar Respostas</button>
     </div>
 
     <script>
-      // ID do questionário injetado pelo Flask
       const questionarioId = {{ id | tojson }};
     </script>
 

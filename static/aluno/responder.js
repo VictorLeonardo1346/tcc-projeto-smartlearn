@@ -1,100 +1,124 @@
 // static/aluno/responder.js
+let questoes = [];
+let indiceAtual = 0;
+let respostasUsuario = {};
+
 window.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("questionsContainer");
+  const area = document.getElementById("questionArea");
+  const btnProxima = document.getElementById("proximaPerguntaBtn");
   const btnEnviar = document.getElementById("submitBtn");
 
-  if (!container) return;
+  const progressInfo = document.getElementById("progressInfo");
+  const progressFill = document.getElementById("progressFill");
 
   async function carregarQuestoes() {
-    try {
-      const resp = await fetch(`/api/questoes/${questionarioId}`);
-      if (!resp.ok) throw new Error("Falha ao buscar questões");
-      const questoes = await resp.json();
+    const resp = await fetch(`/api/questoes/${questionarioId}`);
+    questoes = await resp.json();
+    mostrarQuestao(); // só aqui a barra pode ser atualizada
+  }
 
-      container.innerHTML = "";
+  function mostrarQuestao() {
+    const q = questoes[indiceAtual];
+    area.innerHTML = "";
 
-      questoes.forEach((q, i) => {
-        const div = document.createElement("div");
-        div.className = "question";
+    atualizarProgresso(); // <-- CORREÇÃO
 
-        const enunciado = document.createElement("p");
-        enunciado.innerHTML = `<b>${i + 1}. ${q.enunciado}</b>`;
-        div.appendChild(enunciado);
+    const titulo = document.createElement("div");
+    titulo.className = "pergunta-texto";
+    titulo.textContent = `${indiceAtual + 1}. ${q.enunciado}`;
+    area.appendChild(titulo);
 
-        // ✅ Se a questão tiver imagem, exibe
-        if (q.imagem) {
-          const img = document.createElement("img");
-          img.src = q.imagem;
-          img.alt = "Imagem da questão";
-          img.className = "imagem-questao";
-          div.appendChild(img);
-        }
+    if (q.imagem) {
+      const img = document.createElement("img");
+      img.src = q.imagem;
+      img.className = "imagem-questao";
+      area.appendChild(img);
+    }
 
-        const optionsDiv = document.createElement("div");
-        optionsDiv.className = "options";
+    const opcoes = document.createElement("div");
+    opcoes.className = "opcoes";
 
-        const alternativas = q.alternativas || ["", "", "", ""];
+    const alternativas = [
+      q.alternativas?.[0],
+      q.alternativas?.[1],
+      q.alternativas?.[2],
+      q.alternativas?.[3],
+    ];
 
-        ["1", "2", "3", "4"].forEach((valor, idx) => {
-          const label = document.createElement("label");
-          const radio = document.createElement("input");
-          radio.type = "radio";
-          radio.name = `q${q.id}`;
-          radio.value = valor;
-          label.appendChild(radio);
-          label.append(
-            ` ${String.fromCharCode(65 + idx)}) ${alternativas[idx] ?? ""}`
-          );
-          optionsDiv.appendChild(label);
-        });
+    alternativas.forEach((texto, idx) => {
+      const botao = document.createElement("button");
+      botao.className = "alternativa-btn";
+      botao.textContent = `${String.fromCharCode(65 + idx)}) ${texto}`;
 
-        div.appendChild(optionsDiv);
-        container.appendChild(div);
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao carregar questões: " + err.message);
+      botao.onclick = () => responder(idx + 1, botao, q);
+
+      opcoes.appendChild(botao);
+    });
+
+    area.appendChild(opcoes);
+
+    btnProxima.style.display = "none";
+  }
+
+  function responder(valor, botao, q) {
+    if (respostasUsuario[q.id] !== undefined) return;
+
+    respostasUsuario[q.id] = valor;
+
+    const correta = Number(q.correta);
+
+    const botoes = document.querySelectorAll(".alternativa-btn");
+    botoes.forEach((b, i) => {
+      const numero = i + 1;
+      if (numero === correta) b.classList.add("correto");
+      if (numero === valor && numero !== correta) b.classList.add("errado");
+      b.style.pointerEvents = "none";
+    });
+
+    if (indiceAtual < questoes.length - 1) {
+      btnProxima.style.display = "block";
+    } else {
+      btnEnviar.style.display = "block";
     }
   }
 
-  async function enviarRespostas() {
-    const radiosChecked = document.querySelectorAll(
-      "input[type=radio]:checked"
-    );
-    const respostasUsuario = {};
-    radiosChecked.forEach((r) => {
-      const qid = Number(r.name.replace("q", ""));
-      if (!Number.isNaN(qid)) respostasUsuario[qid] = r.value;
-    });
+  btnProxima.onclick = () => {
+    indiceAtual++;
+    mostrarQuestao();
+  };
 
+  btnEnviar.onclick = async () => {
     const listaEnvio = Object.entries(respostasUsuario).map(([qid, resp]) => ({
       questao_id: Number(qid),
       resposta: resp,
     }));
 
-    try {
-      const resp = await fetch("/api/salvar_respostas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          questionario_id: Number(questionarioId),
-          respostas: listaEnvio,
-        }),
-      });
+    const resp = await fetch("/api/salvar_respostas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        questionario_id: Number(questionarioId),
+        respostas: listaEnvio,
+      }),
+    });
 
-      const dados = await resp.json();
-      if (!resp.ok || dados.status !== "sucesso") {
-        throw new Error(dados.mensagem || "Erro desconhecido do servidor");
-      }
-
-      // ✅ Redireciona para o resultado após enviar as respostas
+    const dados = await resp.json();
+    if (dados.status === "sucesso") {
       window.location.href = "/aluno/resultado";
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao enviar respostas: " + (err.message || err));
+    } else {
+      alert("Erro ao enviar respostas");
     }
+  };
+
+  function atualizarProgresso() {
+    const total = questoes.length;
+    const atual = indiceAtual + 1;
+
+    progressInfo.textContent = `Pergunta ${atual} de ${total}`;
+
+    const porcentagem = (atual / total) * 100;
+    progressFill.style.width = `${porcentagem}%`;
   }
 
-  btnEnviar.addEventListener("click", enviarRespostas);
   carregarQuestoes();
 });
