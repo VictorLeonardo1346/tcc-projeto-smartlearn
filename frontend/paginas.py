@@ -205,7 +205,7 @@ class ProfessorPage:
             text_color="white"
         ).place(relx=0.5, rely=0.3, anchor=CENTER)
 
-        # Botão criar questionário
+        # Criar Questionário
         ctk.CTkButton(
             self.app,
             text="CRIAR QUESTIONÁRIO",
@@ -215,9 +215,9 @@ class ProfessorPage:
             command=self.abrir_criacao_questionario
         ).place(relx=0.5, rely=0.45, anchor=CENTER)
 
-        # Botão gerenciar questionários (opcional)
+        # Gerenciar Questionários
         ctk.CTkButton(
-             self.app,
+            self.app,
             text="GERENCIAR QUESTIONÁRIOS",
             font=("Century Gothic", 16),
             fg_color="#007ACC",
@@ -225,8 +225,17 @@ class ProfessorPage:
             command=self.abrir_gerenciar_questionarios
         ).place(relx=0.5, rely=0.52, anchor=CENTER)
 
+        # Gerenciar Turmas
+        ctk.CTkButton(
+            self.app,
+            text="GERENCIAR TURMAS",
+            font=("Century Gothic", 16),
+            fg_color="#007ACC",
+            hover_color="#005F99",
+            command=self.abrir_gerenciar_turmas  # coloque sua função real depois
+        ).place(relx=0.5, rely=0.59, anchor=CENTER)
 
-        # Botão sair
+        # Sair
         ctk.CTkButton(
             self.app,
             text="SAIR DO SISTEMA",
@@ -234,14 +243,16 @@ class ProfessorPage:
             fg_color="red",
             hover_color="#800",
             command=self.app.mostrar_login
-        ).place(relx=0.5, rely=0.59, anchor=CENTER)
+        ).place(relx=0.5, rely=0.66, anchor=CENTER)
 
     def abrir_criacao_questionario(self):
-        url = f"{BASE_URL}/professor/criar_questionario"
-        webbrowser.open_new_tab(url)
+        webbrowser.open_new_tab(f"{BASE_URL}/professor/criar_questionario")
 
     def abrir_gerenciar_questionarios(self):
-        url = f"{BASE_URL}/professor/gerenciar"
-        webbrowser.open_new_tab(url)
+        webbrowser.open_new_tab(f"{BASE_URL}/professor/gerenciar")
+
+    def abrir_gerenciar_turmas(self):
+        webbrowser.open_new_tab(f"{BASE_URL}/professor/turmas")
+
    
 
