@@ -77,13 +77,13 @@ class Database:
         self.conn.commit()
         return self.cursor.lastrowid
 
-    def adicionar_questao(self, questionario_id, enunciado, alternativas, correta, Imagem=None):
-        # alternativas deve ser uma lista de 4 elementos [a, b, c, d]
+    def adicionar_questao(self, questionario_id, enunciado, alternativas, correta, dificuldade, imagem=None):
         self.cursor.execute("""
             INSERT INTO Questoes (
-                QuestionarioId, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta, ImagemPath
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
+            QuestionarioId, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD,
+            Correta, ImagemPath, DificuldadeQuestao
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
             questionario_id,
             enunciado,
             alternativas[0] if len(alternativas) > 0 else None,
@@ -91,7 +91,8 @@ class Database:
             alternativas[2] if len(alternativas) > 2 else None,
             alternativas[3] if len(alternativas) > 3 else None,
             correta,
-            Imagem
+            imagem,
+            dificuldade
         ))
         self.conn.commit()
 
@@ -105,4 +106,18 @@ class Database:
             FROM Questoes WHERE QuestionarioId = ?
         """, (questionario_id,))
         return self.cursor.fetchall()
+    
+    def buscar_questao_por_dificuldade(questionario_id, dificuldade):
+        conn = sqlite3.connect("sistema_cadastros.db")
+        cursor = conn.cursor()
 
+        cursor.execute("""
+            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta
+            FROM Questoes 
+            WHERE QuestionarioId = ? AND DificuldadeQuestao = ?
+            ORDER BY RANDOM() LIMIT 1
+        """, (questionario_id, dificuldade))
+
+        questao = cursor.fetchone()
+        conn.close()
+        return questao

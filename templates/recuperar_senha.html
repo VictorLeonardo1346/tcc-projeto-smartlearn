@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #980909; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 380px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        p {
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #980909;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #7d0707;
+        }
+
+        a {
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            text-decoration: none;
+            color: #980909;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Recuperar Senha</h2>
+
+        <p>Um e-mail será enviado para confirmar a troca de senha. Após a confirmação, insira sua nova senha abaixo:</p>
+
+        <form action="/recuperar_senha" method="POST">
+            <input type="password" name="nova_senha" placeholder="Nova senha" required>
+            <input type="password" name="confirmar_senha" placeholder="Confirmar senha" required>
+
+            <button type="submit">Redefinir senha</button>
+        </form>
+
+        <a href="/login">Voltar para o login</a>
+    </div>
+
+</body>
+</html>

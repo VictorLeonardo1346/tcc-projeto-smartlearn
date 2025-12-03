@@ -2,9 +2,12 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from flask_cors import CORS
 from backend.bancodedados import Database
 from backend.respostas_db import RespostasDB
+from ia_dificuldade import calcular_proxima_dificuldade
+from ia_algoritmo import prever_proxima_dificuldade
 import os
 import sqlite3
-from flask_session import Session  # ✅ Correto
+from flask_session import Session  
+import random
 
 
 app = Flask(__name__)
@@ -114,7 +117,7 @@ def salvar_questionario():
     try:
         materia = request.form.get("materia", "")
         titulo = request.form.get("titulo", "")
-        dificuldade = request.form.get("dificuldade", "")
+        dificuldade_global = request.form.get("dificuldade", "")
         data_entrega = request.form.get("dataEntrega", "")
 
         questoes = []
@@ -128,38 +131,34 @@ def salvar_questionario():
                 request.form.get(f"alt1_{index}", ""),
                 request.form.get(f"alt2_{index}", ""),
                 request.form.get(f"alt3_{index}", ""),
-                request.form.get(f"alt4_{index}", ""),
+                request.form.get(f"alt4_{index}", "")
             ]
+
             correta = request.form.get(f"correta_{index}", "")
+            dificuldade_q = request.form.get(f"dificuldade_{index}", "")
 
             questoes.append({
+                "index": index,
                 "pergunta": pergunta,
                 "alternativas": alternativas,
                 "correta": correta,
-                "index": index
+                "dificuldade": dificuldade_q
             })
             index += 1
 
-        # 📂 Cria a pasta de uploads (se não existir)
         UPLOAD_FOLDER = os.path.join("static", "uploads")
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-        # 💾 Salva o questionário no banco
-        questionario_id = db.criar_questionario(materia, titulo, dificuldade, data_entrega)
+        questionario_id = db.criar_questionario(materia, titulo, dificuldade_global, data_entrega)
 
-        # 💾 Salva cada questão e sua imagem (se enviada)
         for q in questoes:
             imagem_file = request.files.get(f"imagem_{q['index']}")
             imagem_path = None
 
             if imagem_file and imagem_file.filename:
                 nome_arquivo = f"q{questionario_id}_{q['index']}_{imagem_file.filename}"
-                caminho_completo = os.path.join(UPLOAD_FOLDER, nome_arquivo)
-                caminho_completo = caminho_completo.replace("\\", "/")  # 🔹 Aqui está o trecho do Windows
-
-                imagem_file.save(caminho_completo)
-
-                # Caminho acessível via URL (Flask serve via /uploads)
+                caminho = os.path.join(UPLOAD_FOLDER, nome_arquivo).replace("\\", "/")
+                imagem_file.save(caminho)
                 imagem_path = f"/uploads/{nome_arquivo}"
 
             db.adicionar_questao(
@@ -167,6 +166,7 @@ def salvar_questionario():
                 q["pergunta"],
                 q["alternativas"],
                 q["correta"],
+                q["dificuldade"],
                 imagem_path
             )
 
@@ -179,9 +179,7 @@ def salvar_questionario():
     except Exception as e:
         print("Erro ao salvar questionário:", e)
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
-
-
-
+    
 # =============================
 # API: listar questionários
 # =============================
@@ -306,6 +304,45 @@ def salvar_respostas():
         "taxa": session["ultimo_taxa"]
     })
 
+    # =============================
+# RECUPERAR SENHA
+# =============================
+
+@app.route("/recuperar_senha", methods=["GET"])
+def recuperar_senha_form():
+    return render_template("recuperar_senha.html")
+
+
+@app.route("/recuperar_senha", methods=["POST"])
+def recuperar_senha_enviar():
+    email = request.form.get("email")
+
+    if not email:
+        return render_template("recuperar_senha.html", mensagem="Insira um e-mail válido.")
+
+    # Verifica se e-mail existe no sistema
+    con = sqlite3.connect("Sistema_cadastros.db")
+    cur = con.cursor()
+    cur.execute("SELECT Id, Username FROM usuarios WHERE Email = ?", (email,))
+    user = cur.fetchone()
+    con.close()
+
+    if not user:
+        return render_template("recuperar_senha.html", mensagem="E-mail não encontrado no sistema.")
+
+    # SIMULA ENVIO DE NOTIFICAÇÃO / E-MAIL
+    print("\n=== SIMULAÇÃO DE ENVIO DE EMAIL ===")
+    print(f"Para: {email}")
+    print("Assunto: Recuperação de Senha")
+    print(f"Mensagem: Olá {user[1]}, acesse o link abaixo para redefinir sua senha.")
+    print("===================================\n")
+
+    return render_template(
+        "recuperar_senha.html",
+        mensagem="Se o e-mail existir no sistema, você receberá instruções para redefinar sua senha."
+    )
+
+
 # =============================
 # TELA ALUNO - HOME (corrigida)
 # =============================
@@ -428,12 +465,99 @@ def uploads(filename):
      return send_from_directory(os.path.join("static", "uploads"), filename)
     
 
-# =============================
-# HOME
-# =============================
 @app.route("/")
 def home():
     return redirect(url_for("login", force_login="true"))
+
+
+def get_db_desempenho():
+    return sqlite3.connect("desempenho.db")
+
+@app.route("/api/registrar_desempenho", methods=["POST"])
+def api_registrar_desempenho():
+    data = request.json  
+
+    aluno_id = data["aluno_id"]
+    questionario_id = data["questionario_id"]
+    questao_id = data["questao_id"]
+    tempo_resposta = data["tempo_resposta"]
+    erros = data["erros"]
+    dificuldade_atual = data["dificuldade_atual"]
+
+    # IA (modelo scikit-learn)
+    proxima_dificuldade = prever_proxima_dificuldade(
+        tempo=tempo_resposta,
+        erros=erros,
+        dificuldade_atual=dificuldade_atual
+    )
+
+    conn = sqlite3.connect("desempenho.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO Desempenho
+        (AlunoId, QuestionarioId, QuestaoId, TempoResposta, Erros,
+        DificuldadeAtual, ProximaDificuldade)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        aluno_id,
+        questionario_id,
+        questao_id,
+        tempo_resposta,
+        erros,
+        dificuldade_atual,
+        proxima_dificuldade
+    ))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "status": "ok",
+        "proxima_dificuldade": proxima_dificuldade
+    })
+
+@app.route("/api/proxima_questao/<int:questionario_id>")
+def api_proxima_questao(questionario_id):
+
+    # Normaliza para minúsculo SEMPRE
+    dificuldade = request.args.get("dificuldade", "medio").lower()
+
+    conn = sqlite3.connect("banco.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            Id, 
+            Enunciado, 
+            AlternativaA, 
+            AlternativaB, 
+            AlternativaC, 
+            AlternativaD, 
+            Correta, 
+            ImagemPath
+        FROM Questoes
+        WHERE QuestionarioId = ? 
+        AND LOWER(DificuldadeQuestao) = ?
+        ORDER BY RANDOM()
+        LIMIT 1
+    """, (questionario_id, dificuldade))
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return jsonify({"status": "fim", "mensagem": "Sem questões nessa dificuldade"})
+
+    return jsonify({
+        "status": "ok",
+        "id": row[0],
+        "enunciado": row[1],
+        "alternativas": [row[2], row[3], row[4], row[5]],
+        "correta": row[6],
+        "imagem": row[7]
+    })
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

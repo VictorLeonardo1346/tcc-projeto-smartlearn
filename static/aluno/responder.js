@@ -1,31 +1,70 @@
 // static/aluno/responder.js
-let questoes = [];
 let indiceAtual = 0;
-let respostasUsuario = {};
+let questaoAtual = null;
+
+let tempoInicio = 0;
+let dificuldadeAtual = "medio"; // dificuldade inicial padrão
+let erros = 0;
 
 window.addEventListener("DOMContentLoaded", () => {
   const area = document.getElementById("questionArea");
-  const btnProxima = document.getElementById("proximaPerguntaBtn");
-  const btnEnviar = document.getElementById("submitBtn");
-
   const progressInfo = document.getElementById("progressInfo");
   const progressFill = document.getElementById("progressFill");
 
-  async function carregarQuestoes() {
-    const resp = await fetch(`/api/questoes/${questionarioId}`);
-    questoes = await resp.json();
-    mostrarQuestao(); // só aqui a barra pode ser atualizada
+  carregarProximaQuestao();
+
+  async function carregarProximaQuestao() {
+    console.log("📡 Buscando questão com dificuldade:", dificuldadeAtual);
+
+    const resp = await fetch(`/api/proxima_questao/${questionarioId}?dificuldade=${dificuldadeAtual}`);
+    questaoAtual = await resp.json();
+    console.log("➡️ Resposta da API:", questaoAtual);
+
+    // ------------------------------
+    // CORREÇÃO DO BUG DA TELA FINAL
+    // ------------------------------
+    if (questaoAtual.status === "fim") {
+
+      console.warn("⚠️ Nenhuma questão nessa dificuldade:", dificuldadeAtual);
+
+      // Fallback: tentar dificuldade MÉDIA sempre funciona como padrão
+      dificuldadeAtual = "medio";
+
+      const resp2 = await fetch(`/api/proxima_questao/${questionarioId}?dificuldade=${dificuldadeAtual}`);
+      questaoAtual = await resp2.json();
+      console.log("➡️ Tentativa fallback:", questaoAtual);
+
+      if (!questaoAtual.id) {
+        console.error("❌ Nenhuma questão disponível — encerrando questionário");
+        window.location.href = "/aluno/resultado";
+        return;
+      }
+    }
+
+    // Se ainda assim a questão não existe → finaliza
+    if (!questaoAtual.id) {
+      console.error("❌ Questão inválida, indo para resultado");
+      window.location.href = "/aluno/resultado";
+      return;
+    }
+
+    mostrarQuestao();
   }
 
   function mostrarQuestao() {
-    const q = questoes[indiceAtual];
+    erros = 0;
+    tempoInicio = Date.now();
+
     area.innerHTML = "";
 
-    atualizarProgresso(); // <-- CORREÇÃO
+    progressInfo.textContent = `Pergunta ${indiceAtual + 1}`;
+    progressFill.style.width = `${((indiceAtual + 1) * 10)}%`;
+
+    const q = questaoAtual;
 
     const titulo = document.createElement("div");
     titulo.className = "pergunta-texto";
-    titulo.textContent = `${indiceAtual + 1}. ${q.enunciado}`;
+    titulo.textContent = `${q.enunciado}`;
     area.appendChild(titulo);
 
     if (q.imagem) {
@@ -38,87 +77,52 @@ window.addEventListener("DOMContentLoaded", () => {
     const opcoes = document.createElement("div");
     opcoes.className = "opcoes";
 
-    const alternativas = [
-      q.alternativas?.[0],
-      q.alternativas?.[1],
-      q.alternativas?.[2],
-      q.alternativas?.[3],
-    ];
-
-    alternativas.forEach((texto, idx) => {
+    q.alternativas.forEach((texto, idx) => {
       const botao = document.createElement("button");
       botao.className = "alternativa-btn";
       botao.textContent = `${String.fromCharCode(65 + idx)}) ${texto}`;
-
-      botao.onclick = () => responder(idx + 1, botao, q);
-
+      botao.onclick = () => responder(idx + 1);
       opcoes.appendChild(botao);
     });
 
     area.appendChild(opcoes);
-
-    btnProxima.style.display = "none";
   }
 
-  function responder(valor, botao, q) {
-    if (respostasUsuario[q.id] !== undefined) return;
+  async function responder(valor) {
+    const tempoFinal = (Date.now() - tempoInicio) / 1000;
 
-    respostasUsuario[q.id] = valor;
+    const correta = Number(questaoAtual.correta);
+    erros = valor === correta ? 0 : 1;
 
-    const correta = Number(q.correta);
-
-    const botoes = document.querySelectorAll(".alternativa-btn");
-    botoes.forEach((b, i) => {
-      const numero = i + 1;
-      if (numero === correta) b.classList.add("correto");
-      if (numero === valor && numero !== correta) b.classList.add("errado");
-      b.style.pointerEvents = "none";
+    console.log("📝 Registrando desempenho:", {
+      aluno_id: alunoId,
+      questionario_id: questionarioId,
+      questao_id: questaoAtual.id,
+      tempo_resposta: tempoFinal,
+      erros: erros,
+      dificuldade_atual: dificuldadeAtual
     });
 
-    if (indiceAtual < questoes.length - 1) {
-      btnProxima.style.display = "block";
-    } else {
-      btnEnviar.style.display = "block";
-    }
-  }
-
-  btnProxima.onclick = () => {
-    indiceAtual++;
-    mostrarQuestao();
-  };
-
-  btnEnviar.onclick = async () => {
-    const listaEnvio = Object.entries(respostasUsuario).map(([qid, resp]) => ({
-      questao_id: Number(qid),
-      resposta: resp,
-    }));
-
-    const resp = await fetch("/api/salvar_respostas", {
+    const resp = await fetch("/salvar_questionario", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        questionario_id: Number(questionarioId),
-        respostas: listaEnvio,
-      }),
+        aluno_id: alunoId,
+        questionario_id: questionarioId,
+        questao_id: questaoAtual.id,
+        tempo_resposta: tempoFinal,
+        erros: erros,
+        dificuldade_atual: dificuldadeAtual
+      })
     });
 
     const dados = await resp.json();
-    if (dados.status === "sucesso") {
-      window.location.href = "/aluno/resultado";
-    } else {
-      alert("Erro ao enviar respostas");
-    }
-  };
+    console.log("🤖 IA escolheu próxima dificuldade:", dados.proxima_dificuldade);
 
-  function atualizarProgresso() {
-    const total = questoes.length;
-    const atual = indiceAtual + 1;
+    dificuldadeAtual = dados.proxima_dificuldade;
 
-    progressInfo.textContent = `Pergunta ${atual} de ${total}`;
-
-    const porcentagem = (atual / total) * 100;
-    progressFill.style.width = `${porcentagem}%`;
+    indiceAtual++;
+    carregarProximaQuestao();
   }
-
-  carregarQuestoes();
 });
+

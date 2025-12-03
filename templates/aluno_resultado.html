@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Resultado do Questionário</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/resultado.css') }}">
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #6ec1e4, #2e8b57);
+      background: #980909; /* 🔴 fundo igual aluno_responder */
       margin: 0;
       padding: 0;
       display: flex;
@@ -18,9 +18,9 @@
     }
 
     .container {
-      background: #fff;
+      background: #d9d9d9; /* 🔘 caixa igual ao restante do sistema */
       border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       padding: 40px;
       max-width: 600px;
       text-align: center;
@@ -33,14 +33,15 @@
     }
 
     h1 {
-      color: #2e8b57;
+      color: #2e9300; /* 🟢 verde padrão */
       font-size: 28px;
       margin-bottom: 10px;
     }
 
     h2 {
       font-size: 22px;
-      color: #333;
+      color: #000;
+      margin-bottom: 20px;
     }
 
     .info {
@@ -52,7 +53,7 @@
 
     .info span {
       font-weight: bold;
-      color: #2e8b57;
+      color: #2e9300; /* 🟢 destaque verde */
     }
 
     .botoes {
@@ -66,27 +67,30 @@
       padding: 10px 20px;
       font-size: 16px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       transition: 0.3s;
+      font-weight: 600;
     }
 
+    /* 🟢 Botão Ranking */
     .ranking {
-      background-color: #2e8b57;
+      background-color: #2e9300;
       color: #fff;
     }
 
     .ranking:hover {
-      background-color: #256b44;
+      background-color: #256f00;
     }
 
+    /* 🔴 Botão Voltar */
     .voltar {
-      background-color: #6ec1e4;
+      background-color: #f44336;
       color: #fff;
     }
 
     .voltar:hover {
-      background-color: #4da1c8;
+      background-color: #d32f2f;
     }
 
   </style>
