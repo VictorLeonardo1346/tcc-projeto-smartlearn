@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gerenciar Questionários</title>
     <style>
-      /* Fundo geral */
       body {
         background-color: #8b0000;
         font-family: "Noto Sans", sans-serif;
@@ -19,7 +18,6 @@
         min-height: 100vh;
       }
 
-      /* Container principal */
       .container {
         background-color: #1e1e1e;
         padding: 40px;
@@ -32,7 +30,6 @@
         max-height: 90vh;
       }
 
-      /* Título e subtítulo */
       .container h1 {
         color: #fff;
         font-size: 2rem;
@@ -45,7 +42,6 @@
         margin-bottom: 30px;
       }
 
-      /* Cards */
       .cards {
         display: flex;
         flex-direction: column;
@@ -68,7 +64,6 @@
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
       }
 
-      /* Informações do card */
       .info {
         display: flex;
         flex-direction: column;
@@ -88,11 +83,6 @@
         color: #ccc;
       }
 
-      .info b {
-        color: #fff;
-      }
-
-      /* Botões */
       .actions {
         display: flex;
         align-items: center;
@@ -126,7 +116,14 @@
         background-color: #c9302c;
       }
 
-      /* Scroll estilizado */
+      .btn-adicionar-turma {
+        background-color: #28a745;
+      }
+
+      .btn-adicionar-turma:hover {
+        background-color: #218838;
+      }
+
       .container::-webkit-scrollbar {
         width: 8px;
       }
@@ -139,13 +136,95 @@
       .container::-webkit-scrollbar-thumb:hover {
         background-color: #666;
       }
+
+      /* ----------- POPUP ----------- */
+      #turmaPopup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .popup-content {
+        background: #1e1e1e;
+        padding: 30px;
+        border-radius: 10px;
+        width: 420px;
+        text-align: center;
+        color: white;
+      }
+
+      .turma-list {
+        list-style: none;
+        padding: 0;
+        margin: 12px 0 18px 0;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+
+      .turma-list li {
+        background: #0f0f0f;
+        margin: 6px 0;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .turma-list li:hover {
+        background: #222;
+      }
+
+      .popup-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      /* BOTÃO FECHAR DO POPUP */
+      .btn-fechar {
+        background: #444;
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .btn-fechar:hover {
+        background: #666;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>📚 Gerenciar Questionários</h1>
-      <p>Clique em uma atividade para visualizar ou excluí-la.</p>
+      <p>
+        Clique em uma atividade para visualizar, excluir ou adicionar à turma.
+      </p>
       <div id="questionariosContainer" class="cards"></div>
+    </div>
+
+    <!-- POPUP / MODAL -->
+    <div id="turmaPopup">
+      <div class="popup-content">
+        <h2>Adicionar Questionário à Turma</h2>
+        <p id="popupLoading">Carregando...</p>
+
+        <ul id="listaTurmas" class="turma-list" style="display: none"></ul>
+
+        <div class="popup-actions">
+          <button class="btn-fechar" onclick="fecharPopup()">Fechar</button>
+        </div>
+      </div>
     </div>
 
     <script src="/static/professor/gerenciar.js"></script>

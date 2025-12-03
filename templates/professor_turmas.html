@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gerenciar Turmas</title>
+
+    <style>
+      body {
+        margin: 0;
+        background-color: #980909;
+        font-family: "Segoe UI";
+        padding-top: 40px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .painel {
+        background-color: #d9d9d9;
+        width: 900px;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      .sessao {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+      }
+
+      button {
+        background: #1a5cff;
+        padding: 8px 15px;
+        border-radius: 8px;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn-excluir {
+        background: #c10202;
+      }
+
+      .turma-item {
+        background: #eee;
+        padding: 12px;
+        margin: 6px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px;
+      }
+
+      .acoes {
+        display: flex;
+        gap: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="painel">
+      <h1>Gerenciar Turmas</h1>
+
+      <div class="sessao">
+        <h3>Criar nova turma</h3>
+        <form action="/professor/turmas/criar" method="POST">
+          <input
+            type="text"
+            name="nome_turma"
+            placeholder="Nome da turma"
+            required
+          />
+          <button type="submit">Criar</button>
+        </form>
+      </div>
+
+      <div class="sessao">
+        <h3>Turmas Registradas</h3>
+
+        {% for turma in turmas %}
+        <div class="turma-item">
+          <strong>{{ turma[1] }}</strong>
+
+          <div class="acoes">
+            <button onclick="location.href='/professor/turmas/{{ turma[0] }}'">
+              Gerenciar alunos
+            </button>
+
+            <form
+              action="/professor/turmas/{{ turma[0] }}/excluir"
+              method="POST"
+              onsubmit="return confirm('Tem certeza que deseja excluir esta turma?');"
+            >
+              <button class="btn-excluir">Excluir</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </body>
+</html>
