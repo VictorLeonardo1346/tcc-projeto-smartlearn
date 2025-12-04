@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from flask_cors import CORS
 from backend.bancodedados import Database
 from backend.respostas_db import RespostasDB
-from ia_dificuldade import calcular_proxima_dificuldade
+
 from ia_algoritmo import prever_proxima_dificuldade
 import os
 import sqlite3
@@ -364,9 +364,15 @@ def aluno_home():
 @app.route("/aluno/responder/<int:questionario_id>")
 def aluno_responder(questionario_id):
     aluno_id = session.get("aluno_id")
+    print("DEBUG: aluno_id =", aluno_id, "questionario_id =", questionario_id)
     if not aluno_id:
         return redirect(url_for("login", force_login="true"))
-    return render_template("aluno_responder.html", id=questionario_id, aluno_id=aluno_id)
+    return render_template(
+        "aluno_responder.html",
+        id=questionario_id,
+        aluno_id=aluno_id
+    )
+
 
 # =============================
 # TELA RESULTADO
@@ -477,86 +483,150 @@ def get_db_desempenho():
 def api_registrar_desempenho():
     data = request.json  
 
-    aluno_id = data["aluno_id"]
-    questionario_id = data["questionario_id"]
-    questao_id = data["questao_id"]
-    tempo_resposta = data["tempo_resposta"]
-    erros = data["erros"]
-    dificuldade_atual = data["dificuldade_atual"]
+    # validação
+    try:
+        aluno_id = int(data["aluno_id"])
+        questionario_id = int(data["questionario_id"])
+        questao_id = int(data["questao_id"])
+        tempo_resposta = float(data["tempo_resposta"])
+        erros = int(data["erros"])
+        print(f"[DEBUG] Dados recebidos: aluno={aluno_id}, questionario={questionario_id}, questao={questao_id}, tempo={tempo_resposta}, erros={erros}")
+    except Exception as e:
+        print(f"[ERRO] Dados inválidos: {e}")
+        return jsonify({"status": "erro", "mensagem": f"Dados inválidos: {e}"}), 400
 
-    # IA (modelo scikit-learn)
-    proxima_dificuldade = prever_proxima_dificuldade(
-        tempo=tempo_resposta,
-        erros=erros,
-        dificuldade_atual=dificuldade_atual
-    )
+    # 1️⃣ pegar dificuldade REAL da questão no banco principal
+    try:
+        conn_main = sqlite3.connect("banco.db")
+        cursor_main = conn_main.cursor()
 
-    conn = sqlite3.connect("desempenho.db")
-    cursor = conn.cursor()
+        cursor_main.execute("SELECT DificuldadeQuestao FROM Questoes WHERE id = ?", (questao_id,))
+        row = cursor_main.fetchone()
+        conn_main.close()
 
-    cursor.execute("""
-        INSERT INTO Desempenho
-        (AlunoId, QuestionarioId, QuestaoId, TempoResposta, Erros,
-        DificuldadeAtual, ProximaDificuldade)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        aluno_id,
-        questionario_id,
-        questao_id,
-        tempo_resposta,
-        erros,
-        dificuldade_atual,
-        proxima_dificuldade
-    ))
+        if not row:
+            print("[ERRO] Questão não encontrada no banco principal!")
+            return jsonify({"status": "erro", "mensagem": "Questão não encontrada no banco principal!"}), 400
 
-    conn.commit()
-    conn.close()
+        dificuldade_atual_real = str(row[0]).lower().strip()
+        print(f"[DEBUG] Dificuldade real da questão: {dificuldade_atual_real}")
+
+    except Exception as e:
+        print(f"[ERRO] Falha ao acessar banco principal: {e}")
+        return jsonify({"status": "erro", "mensagem": f"Falha ao acessar banco principal: {e}"}), 500
+
+    # normalização
+    mapa = {
+        "médio": "medio",
+        "medio": "medio",
+        "facil": "facil",
+        "fácil": "facil",
+        "dificil": "dificil",
+        "difícil": "dificil"
+    }
+    dificuldade_atual_real = mapa.get(dificuldade_atual_real, "medio")
+
+    # 2️⃣ IA usa dificuldade REAL da questão
+    try:
+        proxima = prever_proxima_dificuldade(
+            tempo=tempo_resposta,
+            erros=erros,
+            dificuldade_atual=dificuldade_atual_real
+        )
+        proxima = str(proxima).lower()
+        proxima = mapa.get(proxima, "medio")
+        print(f"[DEBUG] Próxima dificuldade sugerida pela IA: {proxima}")
+    except Exception as e:
+        print(f"[ERRO] IA falhou: {e}")
+        proxima = "medio"
+
+    # 3️⃣ grava no desempenho
+    try:
+        conn = sqlite3.connect("desempenho.db")
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO Desempenho
+            (AlunoId, QuestionarioId, QuestaoId, TempoResposta, Erros,
+             DificuldadeAtual, ProximaDificuldade)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            aluno_id,
+            questionario_id,
+            questao_id,
+            tempo_resposta,
+            erros,
+            dificuldade_atual_real,
+            proxima
+        ))
+
+        conn.commit()
+        conn.close()
+        print("[DEBUG] Desempenho registrado com sucesso!")
+
+    except Exception as e:
+        print(f"[ERRO] Falha ao registrar desempenho: {e}")
+        return jsonify({"status": "erro", "mensagem": f"Falha ao registrar desempenho: {e}"}), 500
 
     return jsonify({
         "status": "ok",
-        "proxima_dificuldade": proxima_dificuldade
+        "proxima_dificuldade": proxima
     })
 
-@app.route("/api/proxima_questao/<int:questionario_id>")
+
+
+
+@app.route("/api/proxima_questao/<int:questionario_id>", methods=["GET"])
 def api_proxima_questao(questionario_id):
+    try:
+        dificuldade = request.args.get("dificuldade", "medio").lower()
+        respondidas = request.args.getlist("respondidas[]", type=int)
 
-    # Normaliza para minúsculo SEMPRE
-    dificuldade = request.args.get("dificuldade", "medio").lower()
+        # busca todas as questões
+        rows = db.buscar_questoes(questionario_id)
+        if not rows:
+            return jsonify({"status": "erro", "mensagem": "Questionário não encontrado"}), 404
+        
+        # organiza as questões
+        questoes = []
+        for r in rows:
+            questoes.append({
+                "id": r[0],
+                "enunciado": r[1],
+                "alternativas": [r[2], r[3], r[4], r[5]],
+                "correta": r[6],
+                "dificuldade": r[7] if len(r) > 7 else "medio",
+                "imagem": r[7] if isinstance(r[7], str) and r[7].startswith("/uploads/") else None
+            })
 
-    conn = sqlite3.connect("banco.db")
-    cursor = conn.cursor()
+        # remove respondidas
+        restantes = [q for q in questoes if q["id"] not in respondidas]
 
-    cursor.execute("""
-        SELECT 
-            Id, 
-            Enunciado, 
-            AlternativaA, 
-            AlternativaB, 
-            AlternativaC, 
-            AlternativaD, 
-            Correta, 
-            ImagemPath
-        FROM Questoes
-        WHERE QuestionarioId = ? 
-        AND LOWER(DificuldadeQuestao) = ?
-        ORDER BY RANDOM()
-        LIMIT 1
-    """, (questionario_id, dificuldade))
+        if not restantes:
+            return jsonify({"status": "fim"})
 
-    row = cursor.fetchone()
-    conn.close()
+        # filtra pela dificuldade pedida
+        filtradas = [q for q in restantes if q["dificuldade"] == dificuldade]
 
-    if not row:
-        return jsonify({"status": "fim", "mensagem": "Sem questões nessa dificuldade"})
+        # se não tiver questões daquela dificuldade, devolve qualquer uma
+        if not filtradas:
+            filtradas = restantes
 
-    return jsonify({
-        "status": "ok",
-        "id": row[0],
-        "enunciado": row[1],
-        "alternativas": [row[2], row[3], row[4], row[5]],
-        "correta": row[6],
-        "imagem": row[7]
-    })
+        # escolhe aleatória
+        q = random.choice(filtradas)
+
+        return jsonify({
+            "id": q["id"],
+            "enunciado": q["enunciado"],
+            "alternativas": q["alternativas"],
+            "correta": q["correta"],
+            "imagem": q["imagem"],
+            "dificuldade": q["dificuldade"]
+        })
+    except Exception as e:
+        print("Erro /api/proxima_questao:", e)
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+
 
 
 if __name__ == "__main__":

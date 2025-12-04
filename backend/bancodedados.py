@@ -32,7 +32,7 @@ class Database:
             );
         """)
 
-        # Tabela de questões
+        # Tabela de questões com coluna DificuldadeQuestao
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS Questoes(
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,6 +44,7 @@ class Database:
                 AlternativaD TEXT,
                 Correta TEXT,
                 ImagemPath TEXT,
+                DificuldadeQuestao TEXT NOT NULL,
                 FOREIGN KEY (QuestionarioId) REFERENCES Questionarios(Id)
             );
         """)
@@ -78,12 +79,16 @@ class Database:
         return self.cursor.lastrowid
 
     def adicionar_questao(self, questionario_id, enunciado, alternativas, correta, dificuldade, imagem=None):
+        # normaliza a dificuldade para minúsculas e sem acentos
+        dificuldade = dificuldade.lower()
+        dificuldade = dificuldade.replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u')
+
         self.cursor.execute("""
             INSERT INTO Questoes (
             QuestionarioId, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD,
             Correta, ImagemPath, DificuldadeQuestao
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
+        """, (
             questionario_id,
             enunciado,
             alternativas[0] if len(alternativas) > 0 else None,
@@ -102,17 +107,21 @@ class Database:
 
     def buscar_questoes(self, questionario_id):
         self.cursor.execute("""
-            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta, ImagemPath
+            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta, ImagemPath, DificuldadeQuestao
             FROM Questoes WHERE QuestionarioId = ?
         """, (questionario_id,))
         return self.cursor.fetchall()
     
-    def buscar_questao_por_dificuldade(questionario_id, dificuldade):
+    def buscar_questao_por_dificuldade(self, questionario_id, dificuldade):
+        # normaliza a dificuldade para minúsculas e sem acentos
+        dificuldade = dificuldade.lower()
+        dificuldade = dificuldade.replace('á','a').replace('é','e').replace('í','i').replace('ó','o').replace('ú','u')
+
         conn = sqlite3.connect("sistema_cadastros.db")
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta
+            SELECT Id, Enunciado, AlternativaA, AlternativaB, AlternativaC, AlternativaD, Correta, ImagemPath, DificuldadeQuestao
             FROM Questoes 
             WHERE QuestionarioId = ? AND DificuldadeQuestao = ?
             ORDER BY RANDOM() LIMIT 1

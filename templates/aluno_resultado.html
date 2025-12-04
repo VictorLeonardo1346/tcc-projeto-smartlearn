@@ -7,18 +7,18 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: #980909; /* 🔴 fundo igual aluno_responder */
+      background: #980909;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
       min-height: 100vh;
       color: #333;
+      padding: 40px 0;
     }
 
     .container {
-      background: #d9d9d9; /* 🔘 caixa igual ao restante do sistema */
+      background: #d9d9d9;
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.3);
       padding: 40px;
@@ -33,7 +33,7 @@
     }
 
     h1 {
-      color: #2e9300; /* 🟢 verde padrão */
+      color: #2e9300;
       font-size: 28px;
       margin-bottom: 10px;
     }
@@ -53,7 +53,7 @@
 
     .info span {
       font-weight: bold;
-      color: #2e9300; /* 🟢 destaque verde */
+      color: #2e9300;
     }
 
     .botoes {
@@ -73,7 +73,6 @@
       font-weight: 600;
     }
 
-    /* 🟢 Botão Ranking */
     .ranking {
       background-color: #2e9300;
       color: #fff;
@@ -83,7 +82,6 @@
       background-color: #256f00;
     }
 
-    /* 🔴 Botão Voltar */
     .voltar {
       background-color: #f44336;
       color: #fff;
@@ -92,7 +90,6 @@
     .voltar:hover {
       background-color: #d32f2f;
     }
-
   </style>
 </head>
 <body>
@@ -106,7 +103,7 @@
       <p><strong>Erros:</strong> <span>{{ erros }}</span></p>
       <p><strong>Total de Questões:</strong> <span>{{ total }}</span></p>
       <p><strong>Taxa de Acerto:</strong> <span>{{ taxa }}%</span></p>
-      <p><strong>Pontuação Total:</strong> <span>{{ pontos }}</span></p>
+      <p><strong>Pontuação Total:</strong> <span>{{ pontos | int }}</span></p>
     </div>
 
     <div class="botoes">

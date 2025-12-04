@@ -13,7 +13,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
       }
 
       .painel {
@@ -164,8 +164,9 @@
 
     <script>
       const questionarioId = {{ id | tojson }};
+      const alunoId = {{ aluno_id | tojson }};
     </script>
-
-    <script src="/static/aluno/responder.js"></script>
+    
+    <script src="{{ url_for('static', filename='aluno/responder.js') }}"></script>
   </body>
 </html>

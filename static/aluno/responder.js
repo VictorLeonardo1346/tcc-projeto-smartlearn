@@ -1,128 +1,96 @@
-// static/aluno/responder.js
-let indiceAtual = 0;
 let questaoAtual = null;
+let respondidas = [];
+let indiceAtual = 0;
+let dificuldadeAtual = "medio";
+let inicioTempo = 0;
 
-let tempoInicio = 0;
-let dificuldadeAtual = "medio"; // dificuldade inicial padrão
-let erros = 0;
+async function carregarProximaQuestao() {
+    const area = document.getElementById("questionArea");
+    const progressInfo = document.getElementById("progressInfo");
+    const progressFill = document.getElementById("progressFill");
 
-window.addEventListener("DOMContentLoaded", () => {
-  const area = document.getElementById("questionArea");
-  const progressInfo = document.getElementById("progressInfo");
-  const progressFill = document.getElementById("progressFill");
+    const params = new URLSearchParams();
+    params.append("dificuldade", dificuldadeAtual);
+    respondidas.forEach(id => params.append("respondidas[]", id));
 
-  carregarProximaQuestao();
-
-  async function carregarProximaQuestao() {
-    console.log("📡 Buscando questão com dificuldade:", dificuldadeAtual);
-
-    const resp = await fetch(`/api/proxima_questao/${questionarioId}?dificuldade=${dificuldadeAtual}`);
+    const resp = await fetch(`/api/proxima_questao/${questionarioId}?${params.toString()}`);
     questaoAtual = await resp.json();
-    console.log("➡️ Resposta da API:", questaoAtual);
 
-    // ------------------------------
-    // CORREÇÃO DO BUG DA TELA FINAL
-    // ------------------------------
-    if (questaoAtual.status === "fim") {
-
-      console.warn("⚠️ Nenhuma questão nessa dificuldade:", dificuldadeAtual);
-
-      // Fallback: tentar dificuldade MÉDIA sempre funciona como padrão
-      dificuldadeAtual = "medio";
-
-      const resp2 = await fetch(`/api/proxima_questao/${questionarioId}?dificuldade=${dificuldadeAtual}`);
-      questaoAtual = await resp2.json();
-      console.log("➡️ Tentativa fallback:", questaoAtual);
-
-      if (!questaoAtual.id) {
-        console.error("❌ Nenhuma questão disponível — encerrando questionário");
+    if (!questaoAtual || questaoAtual.status === "fim") {
         window.location.href = "/aluno/resultado";
         return;
-      }
     }
 
-    // Se ainda assim a questão não existe → finaliza
-    if (!questaoAtual.id) {
-      console.error("❌ Questão inválida, indo para resultado");
-      window.location.href = "/aluno/resultado";
-      return;
-    }
+    inicioTempo = Date.now();
+    mostrarQuestao(area, progressInfo, progressFill);
+}
 
-    mostrarQuestao();
-  }
-
-  function mostrarQuestao() {
-    erros = 0;
-    tempoInicio = Date.now();
-
+function mostrarQuestao(area, progressInfo, progressFill) {
     area.innerHTML = "";
+    indiceAtual++;
 
-    progressInfo.textContent = `Pergunta ${indiceAtual + 1}`;
-    progressFill.style.width = `${((indiceAtual + 1) * 10)}%`;
-
-    const q = questaoAtual;
+    progressInfo.textContent = `Pergunta ${indiceAtual}`;
+    progressFill.style.width = `${(indiceAtual / (indiceAtual + 2) * 100).toFixed(0)}%`;
 
     const titulo = document.createElement("div");
     titulo.className = "pergunta-texto";
-    titulo.textContent = `${q.enunciado}`;
+    titulo.textContent = questaoAtual.enunciado;
     area.appendChild(titulo);
 
-    if (q.imagem) {
-      const img = document.createElement("img");
-      img.src = q.imagem;
-      img.className = "imagem-questao";
-      area.appendChild(img);
+    if (questaoAtual.imagem) {
+        const img = document.createElement("img");
+        img.src = questaoAtual.imagem;
+        img.className = "imagem-questao";
+        area.appendChild(img);
     }
 
     const opcoes = document.createElement("div");
     opcoes.className = "opcoes";
 
-    q.alternativas.forEach((texto, idx) => {
-      const botao = document.createElement("button");
-      botao.className = "alternativa-btn";
-      botao.textContent = `${String.fromCharCode(65 + idx)}) ${texto}`;
-      botao.onclick = () => responder(idx + 1);
-      opcoes.appendChild(botao);
+    questaoAtual.alternativas.forEach((texto, idx) => {
+        const botao = document.createElement("button");
+        botao.className = "alternativa-btn";
+        botao.textContent = `${String.fromCharCode(65 + idx)}) ${texto}`;
+
+        botao.onclick = async () => {
+            const correta = Number(questaoAtual.correta);
+            const acertou = (idx + 1) === correta;
+
+            if (acertou) botao.classList.add("correto");
+            else botao.classList.add("errado");
+
+            document.querySelectorAll(".alternativa-btn").forEach(b => b.disabled = true);
+
+            const tempoResposta = (Date.now() - inicioTempo) / 1000;
+
+            // envia desempenho para IA
+            await fetch("/api/registrar_desempenho", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    aluno_id: alunoId,
+                    questionario_id: questionarioId,
+                    questao_id: questaoAtual.id,
+                    tempo_resposta: tempoResposta,
+                    erros: acertou ? 0 : 1,
+                    dificuldade_atual: dificuldadeAtual
+                })
+            });
+
+            // atualiza dificuldade usando IA simples
+            dificuldadeAtual = acertou ? "dificil" : "facil";
+
+            respondidas.push(questaoAtual.id);
+
+            setTimeout(() => {
+                carregarProximaQuestao();
+            }, 1000);
+        };
+
+        opcoes.appendChild(botao);
     });
 
     area.appendChild(opcoes);
-  }
+}
 
-  async function responder(valor) {
-    const tempoFinal = (Date.now() - tempoInicio) / 1000;
-
-    const correta = Number(questaoAtual.correta);
-    erros = valor === correta ? 0 : 1;
-
-    console.log("📝 Registrando desempenho:", {
-      aluno_id: alunoId,
-      questionario_id: questionarioId,
-      questao_id: questaoAtual.id,
-      tempo_resposta: tempoFinal,
-      erros: erros,
-      dificuldade_atual: dificuldadeAtual
-    });
-
-    const resp = await fetch("/salvar_questionario", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        aluno_id: alunoId,
-        questionario_id: questionarioId,
-        questao_id: questaoAtual.id,
-        tempo_resposta: tempoFinal,
-        erros: erros,
-        dificuldade_atual: dificuldadeAtual
-      })
-    });
-
-    const dados = await resp.json();
-    console.log("🤖 IA escolheu próxima dificuldade:", dados.proxima_dificuldade);
-
-    dificuldadeAtual = dados.proxima_dificuldade;
-
-    indiceAtual++;
-    carregarProximaQuestao();
-  }
-});
-
+window.addEventListener("DOMContentLoaded", carregarProximaQuestao);
